@@ -9,7 +9,7 @@
   <!-- PWA META -->
   <meta name="theme-color" content="#4f46e5" />
   <link rel="manifest" href="/nemecky-jazyk/manifest.webmanifest" />
- <link rel="apple-touch-icon" href="/nemecky-jazyk/icon.png">
+  <link rel="apple-touch-icon" href="/nemecky-jazyk/icon.png">
 
   <!-- Tailwind + fonty -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -33,13 +33,13 @@
       border-radius: 1.5rem;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
       padding: 2rem;
-      max-width: 600px;
+      max-width: 680px;
       width: 100%;
       text-align: center;
       border: 4px solid #818cf8;
     }
     .button {
-      padding: 0.75rem 2rem;
+      padding: 0.75rem 1.25rem;
       font-weight: bold;
       border-radius: 9999px;
       color: white;
@@ -67,19 +67,66 @@
     .speak-button:disabled { background-color: #cbd5e1; cursor: not-allowed; color: #64748b; }
     .credits-box { background-color: #d1fae5; border: 2px solid #34d399; border-radius: 0.5rem; padding: 1rem; margin-top: 2rem; text-align: center; }
     .credits-text { color: #7c3aed; font-weight: bold; }
+
+    /* Auto panel */
+    .panel {
+      background:#fff; border:2px solid #818cf8; border-radius:1rem; padding:1rem; margin-bottom:1rem;
+    }
+    .row { display:flex; gap:.75rem; flex-wrap:wrap; align-items:center; justify-content:center; }
+    .field { display:flex; flex-direction:column; gap:.25rem; min-width: 150px; }
+    .field input, .field select {
+      border:2px solid #c7d2fe; border-radius:.75rem; padding:.5rem .75rem; outline:none;
+    }
+    .muted { opacity:.85 }
   </style>
 </head>
 <body>
   <div class="container">
     <h1 class="text-3xl font-bold text-slate-800 mb-6">Precvičovanie nemčiny</h1>
+
+    <!-- AUTO REŽIM panel -->
+    <div class="panel">
+      <div class="row">
+        <button id="auto-start" class="button button-green">▶️ Spustiť auto</button>
+        <button id="auto-pause" class="button button-indigo" disabled>⏸️ Pauza</button>
+        <button id="auto-resume" class="button button-indigo" disabled>▶️ Pokračovať</button>
+        <button id="auto-stop" class="button button-red" disabled>⏹️ Stop</button>
+        <button id="auto-prev" class="button button-blue" disabled>⏮️ Predošlé</button>
+        <button id="auto-next" class="button button-blue" disabled>⏭️ Ďalšie</button>
+      </div>
+      <div class="row" style="margin-top:.75rem">
+        <div class="field">
+          <label for="auto-rate" class="text-white font-semibold">Rýchlosť hlasu</label>
+          <input id="auto-rate" type="number" min="0.5" max="2" step="0.1" value="1.0" />
+        </div>
+        <div class="field">
+          <label for="auto-delay" class="text-white font-semibold">Oneskorenie DE → SK (ms)</label>
+          <input id="auto-delay" type="number" min="0" step="100" value="600" />
+        </div>
+        <div class="field">
+          <label for="auto-start-index" class="text-white font-semibold">Začať od indexu</label>
+          <input id="auto-start-index" type="number" min="0" step="1" value="0" />
+        </div>
+        <div class="field">
+          <label for="auto-finish" class="text-white font-semibold">Po dobehnutí</label>
+          <select id="auto-finish">
+            <option value="stop">Zastaviť</option>
+            <option value="loop">Opakovať</option>
+          </select>
+        </div>
+      </div>
+      <div id="auto-status" class="muted" style="margin-top:.5rem">Pripravené…</div>
+    </div>
+
     <div id="app-content"></div>
+
     <div class="credits-box">
       <span class="credits-text">Vytvoril: Ivan Kebra Nagast</span>
     </div>
   </div>
 
   <script>
-    // --- Robustné TTS pre GitHub Pages + iPhone (Safari) ---
+    // --- Robustné TTS pre GitHub Pages + notebook/iPhone ---
     const TTS = (() => {
       const synth = window.speechSynthesis;
 
@@ -125,11 +172,11 @@
         return list[0];
       }
 
-      async function speak(text, langCode) {
-        if (!('speechSynthesis' in window)) { showMessage("Váš prehliadač nepodporuje TTS."); return; }
+      async function speak(text, langCode, rate=1.0) {
+        if (!('speechSynthesis' in window)) { showMessage("Váš prehliadač nepodporuje TTS."); return Promise.resolve(); }
         await loadVoicesOnce();
 
-        const u = new SpeechSynthesisUtterance(text);
+        const u = new SpeechSynthesisUtterance(String(text));
         u.lang = langCode; // "de-DE" alebo "sk-SK"
 
         const prefer = langCode === "de-DE"
@@ -139,21 +186,29 @@
         const voice = pickVoiceByLang(langCode, prefer);
         if (voice) u.voice = voice;
 
-        u.rate = 1.0; u.pitch = 1.0; u.volume = 1.0;
+        u.rate = rate; u.pitch = 1.0; u.volume = 1.0;
 
-        synth.cancel();
-        synth.speak(u);
+        return new Promise(res => {
+          try {
+            synth.cancel();
+            u.onend = res;
+            u.onerror = res;
+            synth.speak(u);
+          } catch(_) { res(); }
+        });
       }
+
+      function cancel(){ try { window.speechSynthesis.cancel(); } catch(_){} }
 
       function showMessage(text) {
         const box = document.createElement('div');
         box.textContent = text;
-        box.style.cssText = "position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); padding:20px; background-color:#ef4444; color:white; border-radius:10px; z-index:100; text-align:center;";
-        document.querySelector('.container').appendChild(box);
-        setTimeout(() => box.remove(), 3000);
+        box.style.cssText = "position:fixed; inset:auto auto 1rem 50%; transform:translateX(-50%); padding:12px 16px; background-color:#ef4444; color:white; border-radius:10px; z-index:1000; text-align:center;";
+        document.body.appendChild(box);
+        setTimeout(() => box.remove(), 2500);
       }
 
-      return { speak };
+      return { speak, cancel };
     })();
     // --- Koniec TTS časti ---
 
@@ -354,9 +409,10 @@
       let currentChapter = 'main';
       let kpakIndex = 0;
 
+      // ---- EXISTUJÚCE funkcie (ponechané) ----
       const speakText = async (text, langShort) => {
         const lang = (langShort === 'de') ? 'de-DE' : 'sk-SK';
-        await TTS.speak(text, lang);
+        await TTS.speak(text, lang, Number(document.getElementById('auto-rate')?.value || 1.0));
       };
 
       const getNextWord = () => {
@@ -455,6 +511,132 @@
       };
 
       getNextWord();
+
+      // ---- AUTO REŽIM (DE → ukáž preklad → SK → ďalšie) ----
+      const $ = (id) => document.getElementById(id);
+      const elStart = $("auto-start");
+      const elPause = $("auto-pause");
+      const elResume= $("auto-resume");
+      const elStop  = $("auto-stop");
+      const elPrev  = $("auto-prev");
+      const elNext  = $("auto-next");
+      const elRate  = $("auto-rate");
+      const elDelay = $("auto-delay");
+      const elIdx   = $("auto-start-index");
+      const elFinish= $("auto-finish");
+      const elStatus= $("auto-status");
+
+      const st = {
+        running:false, paused:false,
+        rate:1.0, delay:600, finish:"stop",
+        get data(){ return currentChapter === 'main' ? vocabularyList : kpakContent; },
+        get i(){ return currentChapter === 'main' ? currentWordIndex : kpakIndex; },
+        set i(v){
+          if (currentChapter === 'main') currentWordIndex = v;
+          else kpakIndex = v;
+        }
+      };
+
+      function setBtns(){
+        elStart.disabled  = st.running;
+        elPause.disabled  = !st.running || st.paused;
+        elResume.disabled = !st.running || !st.paused;
+        elStop.disabled   = !st.running;
+        elPrev.disabled   = !st.running;
+        elNext.disabled   = !st.running;
+      }
+      function status(t){ elStatus.textContent = t; }
+
+      async function playOne(index){
+        const list = st.data;
+        if (!list[index]) return false;
+        const item = list[index];
+
+        // Prečítať DE
+        status(`🔊 [${index+1}/${list.length}] DE: ${item.german}`);
+        await TTS.speak(item.german, "de-DE", st.rate);
+        if (!st.running) return false;
+
+        // zobraziť SK v UI
+        showSlovak = true; render();
+
+        // pauza a potom SK
+        await new Promise(r => setTimeout(r, Number(st.delay)||0));
+        if (!st.running) return false;
+
+        status(`🔊 [${index+1}/${list.length}] SK: ${item.slovak}`);
+        await TTS.speak(item.slovak, "sk-SK", st.rate);
+        return true;
+      }
+
+      async function loop(){
+        setBtns();
+        while (st.running){
+          if (st.paused){ await new Promise(r=>setTimeout(r,150)); continue; }
+          const ok = await playOne(st.i);
+          if (!ok || !st.running) break;
+
+          // posun
+          st.i++;
+          if (st.i >= st.data.length){
+            if (st.finish === 'loop'){ st.i = 0; }
+            else { stopAuto(); break; }
+          } else {
+            // pripraviť ďalšiu položku bez SK zobrazenia
+            showSlovak = false; render();
+          }
+        }
+      }
+
+      function startAuto(){
+        if (!st.data.length){ status("Žiadne dáta."); return; }
+        st.rate   = Number(elRate.value || 1.0);
+        st.delay  = Number(elDelay.value || 600);
+        st.finish = elFinish.value || "stop";
+        const startAt = Math.max(0, Math.min(st.data.length-1, Number(elIdx.value || 0)));
+        st.i = startAt;
+        st.running = true; st.paused = false;
+        // iOS/Chrome pravidlo o user-gestu je splnené klikom na Start
+        status("Auto režim beží…");
+        setBtns();
+        loop();
+      }
+      function stopAuto(){
+        st.running = false; st.paused = false;
+        TTS.cancel();
+        status("Zastavené.");
+        setBtns();
+      }
+      function pauseAuto(){
+        st.paused = true;
+        try { window.speechSynthesis.pause(); } catch(_){}
+        status("Pauza.");
+        setBtns();
+      }
+      function resumeAuto(){
+        st.paused = false;
+        try { window.speechSynthesis.resume(); } catch(_){}
+        status("Pokračujem…");
+        setBtns();
+      }
+      function prevOne(){
+        if (!st.running) return;
+        st.i = Math.max(0, st.i - 1);
+        TTS.cancel(); // hneď preskočí pri ďalšom cykle
+      }
+      function nextOne(){
+        if (!st.running) return;
+        st.i = Math.min(st.data.length-1, st.i + 1);
+        TTS.cancel();
+      }
+
+      elStart.addEventListener('click', startAuto);
+      elStop.addEventListener('click', stopAuto);
+      elPause.addEventListener('click', pauseAuto);
+      elResume.addEventListener('click', resumeAuto);
+      elPrev.addEventListener('click', prevOne);
+      elNext.addEventListener('click', nextOne);
+      // ---- KONIEC AUTO REŽIMU ----
     });
 
     // PWA: registrácia SW (GitHub Pages – nezabúdaj na správnu cestu)
@@ -466,4 +648,3 @@
   </script>
 </body>
 </html>
-
