@@ -1,6 +1,5 @@
 // Jednoduchý offline cache pre GitHub Pages (root: /nemecky-jazyk/)
 const CACHE_NAME = "nj-pwa-v2";
-
 const BASE = "/nemecky-jazyk/";
 
 const ASSETS = [
