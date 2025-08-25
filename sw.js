@@ -1,5 +1,5 @@
 // Jednoduchý offline cache pre GitHub Pages (root: /nemecky-jazyk/)
-const CACHE_NAME = "nj-pwa-v2";
+const CACHE_NAME = "nj-pwa-v3"; // zvýš číslo pri každom update
 const BASE = "/nemecky-jazyk/";
 
 const ASSETS = [
@@ -8,7 +8,6 @@ const ASSETS = [
   BASE + "manifest.webmanifest",
   BASE + "icon-192.png",
   BASE + "icon-512.png"
-  // (Apple-touch ikona je voliteľná pre cache)
 ];
 
 self.addEventListener("install", (event) => {
@@ -29,8 +28,7 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   const req = event.request;
-  // Network-first pre HTML, cache-first pre ostatné
-  if (req.mode === "navigate" || (req.destination === "document")) {
+  if (req.mode === "navigate" || req.destination === "document") {
     event.respondWith(
       fetch(req)
         .then((res) => {
@@ -44,5 +42,12 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       caches.match(req).then((cached) => cached || fetch(req))
     );
+  }
+});
+
+// Prijmi správu zo stránky na okamžité aktivovanie novej verzie
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
   }
 });
