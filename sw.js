@@ -1,5 +1,5 @@
 // Jednoduchý offline cache pre GitHub Pages (root: /nemecky-jazyk/)
-const CACHE_NAME = "nj-pwa-v5"; // <-- pri ďalšom update daj v4, v5, ...
+const CACHE_NAME = "nj-pwa-v6"; // <-- pri ďalšom update daj v4, v5, ...
 const BASE = "/nemecky-jazyk/";
 
 const ASSETS = [
