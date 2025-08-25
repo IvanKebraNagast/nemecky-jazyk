@@ -1,5 +1,5 @@
 // Jednoduchý offline cache pre GitHub Pages (root: /nemecky-jazyk/)
-const CACHE_NAME = "nj-pwa-v3"; // zvýš číslo pri každom update
+const CACHE_NAME = "nj-pwa-v5"; // ↑ pri ďalšom update zvýš (v6, v7…)
 const BASE = "/nemecky-jazyk/";
 
 const ASSETS = [
@@ -30,22 +30,23 @@ self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.mode === "navigate" || req.destination === "document") {
     event.respondWith(
-      fetch(req)
+      fetch(req, { cache: "no-store" })
         .then((res) => {
           const copy = res.clone();
           caches.open(CACHE_NAME).then((c) => c.put(req, copy));
           return res;
         })
-        .catch(() => caches.match(req).then((m) => m || caches.match(BASE)))
+        .catch(() =>
+          caches.match(req).then((m) => m || caches.match(BASE))
+        )
     );
-  } else {
-    event.respondWith(
-      caches.match(req).then((cached) => cached || fetch(req))
-    );
+    return;
   }
+  event.respondWith(
+    caches.match(req).then((cached) => cached || fetch(req))
+  );
 });
 
-// Prijmi správu zo stránky na okamžité aktivovanie novej verzie
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
