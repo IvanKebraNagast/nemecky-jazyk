@@ -1,18 +1,20 @@
 // Jednoduchý offline cache pre GitHub Pages (root: /nemecky-jazyk/)
-const CACHE_NAME = "nj-pwa-v5"; // ↑ pri ďalšom update zvýš (v6, v7…)
+const CACHE_NAME = "nj-pwa-v3"; // <-- pri ďalšom update daj v4, v5, ...
 const BASE = "/nemecky-jazyk/";
 
 const ASSETS = [
   BASE,
   BASE + "index.html",
   BASE + "manifest.webmanifest",
-  BASE + "icon-192.png",
-  BASE + "icon-512.png"
+  BASE + "icon.png" // máš apple-touch-icon icon.png; necháme iba to, čo určite existuje
 ];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
+    caches.open(CACHE_NAME).then((cache) =>
+      // ak by niečo chýbalo, addAll by mohol padnúť; ale máme len existujúce veci
+      cache.addAll(ASSETS)
+    )
   );
   self.skipWaiting();
 });
@@ -28,27 +30,20 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   const req = event.request;
-  if (req.mode === "navigate" || req.destination === "document") {
+  // Network-first pre HTML, cache-first pre ostatné
+  if (req.mode === "navigate" || (req.destination === "document")) {
     event.respondWith(
-      fetch(req, { cache: "no-store" })
+      fetch(req)
         .then((res) => {
           const copy = res.clone();
           caches.open(CACHE_NAME).then((c) => c.put(req, copy));
           return res;
         })
-        .catch(() =>
-          caches.match(req).then((m) => m || caches.match(BASE))
-        )
+        .catch(() => caches.match(req).then((m) => m || caches.match(BASE)))
     );
-    return;
-  }
-  event.respondWith(
-    caches.match(req).then((cached) => cached || fetch(req))
-  );
-});
-
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
+  } else {
+    event.respondWith(
+      caches.match(req).then((cached) => cached || fetch(req))
+    );
   }
 });
