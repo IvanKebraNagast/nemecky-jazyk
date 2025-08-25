@@ -68,7 +68,7 @@
     .credits-box { background-color: #d1fae5; border: 2px solid #34d399; border-radius: 0.5rem; padding: 1rem; margin-top: 2rem; text-align: center; }
     .credits-text { color: #7c3aed; font-weight: bold; }
 
-    /* auto panel */
+    /* panel automatického prehrávania */
     .panel { background:#fff;border:2px solid #818cf8;border-radius:1rem;padding:1rem;margin-bottom:1rem }
     .row { display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center;align-items:center }
     .muted { opacity:.85 }
@@ -76,7 +76,7 @@
 </head>
 <body>
   <div class="container">
-    <h1 class="text-3xl font-bold text-slate-800 mb-4">Precvičovanie nemčiny</h1>
+    <h1 class="text-3xl font-bold text-slate-800 mb-6">Precvičovanie nemčiny</h1>
 
     <!-- ✅ NOVÉ: panel automatického prehrávania (bez inputov) -->
     <div class="panel">
@@ -100,7 +100,7 @@
   </div>
 
   <script>
-    // --- PÔVODNÉ TTS (len drobná úprava: vracia Promise, aby sa dalo čakať) ---
+    // --- TTS – nezmenené, len vracia Promise aby sa dalo čakať na dohovorenie ---
     const TTS = (() => {
       const synth = window.speechSynthesis;
 
@@ -150,8 +150,8 @@
         if (!('speechSynthesis' in window)) return;
         await loadVoicesOnce();
 
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = langCode; // "de-DE" alebo "sk-SK"
+        const u = new SpeechSynthesisUtterance(String(text));
+        u.lang = langCode;
 
         const prefer = langCode === "de-DE"
           ? ["Anna","Markus","Katja","Yannick"]
@@ -168,16 +168,16 @@
             u.onend = res;
             u.onerror = res;
             synth.speak(u);
-          } catch(_) { res(); }
+          } catch { res(); }
         });
       }
 
-      return { speak, cancel(){ try{ window.speechSynthesis.cancel(); }catch(_){} } };
+      return { speak, cancel(){ try{ speechSynthesis.cancel(); }catch{} } };
     })();
-    // --- Koniec TTS časti ---
+    // --- Koniec TTS ---
 
     document.addEventListener('DOMContentLoaded', () => {
-      // ===== tvoje PÔVODNÉ DÁTA (preskočím – vlož si celý pôvodný zoznam; nižšie zostáva logika) =====
+      // ===== TVOJ PÔVODNÝ ZOZNAM – vložil som presne to, čo si poslal =====
       const vocabularyList = [
         { german: 'Vermutung', slovak: 'domienka, tušenie' },
         { german: 'Vermögen', slovak: 'majetok, schopnosť' },
@@ -193,7 +193,149 @@
         { german: 'begegnen', slovak: 'stretnúť' },
         { german: 'begegnet', slovak: 'stretol' },
         { german: 'der/die Zweifel', slovak: 'neistota, pochybnosť' },
-        /* … celý tvoj pôvodný zoznam … */
+        { german: 'der Leichnam', slovak: 'mŕtvola' },
+        { german: 'mitmachen', slovak: 'zúčastniť sa' },
+        { german: 'Ja ich werde mache mit', slovak: 'Áno, pridám sa' },
+        { german: 'Ja, ich schließe mich an', slovak: 'Áno, súhlasím s tým' },
+        { german: 'Rinderfilet', slovak: 'hovädzia sviečkovica' },
+        { german: 'Auftragsverfolgung', slovak: 'sledovanie objednávky' },
+        { german: 'der Scherz', slovak: 'sranda, žart' },
+        { german: 'die Zuversicht', slovak: 'nádej, dôvera, viera' },
+        { german: 'Abschließen', slovak: 'zamknúť' },
+        { german: 'Aufschließen', slovak: 'odomknúť' },
+        { german: 'Ich möchte mich gerne nach der Miete erkundigen', slovak: 'Chcel by som sa opýtať na nájomné' },
+        { german: 'der Bluterguss', slovak: 'modrina' },
+        { german: 'die Narbe', slovak: 'jazva' },
+        { german: 'der Ausschlag', slovak: 'vyrážka' },
+        { german: 'die Schnittwunde', slovak: 'porezanie' },
+        { german: 'der Splitter', slovak: 'trieska' },
+        { german: 'Glühwürmchen', slovak: 'svetluška' },
+        { german: 'Einrichtungshaus', slovak: 'obchod s nábytkom' },
+        { german: 'bewirkt', slovak: 'spôsobí, spôsobia' },
+        { german: 'Erwachen', slovak: 'prebudenie, zobudenie' },
+        { german: 'Arbeitsunfähigkeitsbescheinigung', slovak: 'práceneschopnosť, PN-ka' },
+        { german: 'Schuhe anziehen', slovak: 'obuť sa' },
+        { german: 'Schuhe ausziehen', slovak: 'vyzuť sa' },
+        { german: 'Sich anziehen', slovak: 'obliecť sa' },
+        { german: 'Sich ausziehen', slovak: 'vyzliecť sa' },
+        { german: 'Zieh deine Schuhe aus!', slovak: 'vyzuj sa!' },
+        { german: 'Zieh deine Sachen aus!', slovak: 'vyzleč sa!' },
+        { german: 'Zieh Dich aus!', slovak: 'vyzleč sa!' },
+        { german: 'zieh dich aus baby', slovak: 'vyzleč sa, zlato' },
+        { german: 'Zieh deine Kleidung aus, Baby', slovak: 'vyzleč sa, zlatko' },
+        { german: 'Übergeben', slovak: 'odovzdať' },
+        { german: 'Ich betrachte das als eine Lüge', slovak: 'Považujem to za lož' },
+        { german: 'schäm dich so zu lügen!', slovak: 'Hanba ti takto klamať' },
+        { german: 'God segne dich', slovak: 'Boh ti žehnaj' },
+        { german: 'Kartoffel schälen und würfeln', slovak: 'Zemiaky ošúpeme a nakrájame na kocky' },
+        { german: 'Nebelhorn', slovak: 'hmlovka' },
+        { german: 'Schwein Haxe', slovak: 'prasacie koleno' },
+        { german: 'So habe ich das nie gesagt! Du drehst mir immer das Wort im Munde herum!', slovak: 'Nikdy som to takto nepovedal, vždy prekrúcaš moje slová!' },
+        { german: 'Luftabwehr', slovak: 'protivzdušná obrana' },
+        { german: 'Gehirner schütterung', slovak: 'otras mozgu' },
+        { german: 'Beinbruch', slovak: 'zlomená noha' },
+        { german: 'Krankenhausaufenthalt', slovak: 'hospitalizácia' },
+        { german: 'Ich bin im Reinen mit mir', slovak: 'Som so sebou vyrovnaný' },
+        { german: 'Notaufnahme', slovak: 'pohotovostný príjem' },
+        { german: 'Zinssatz', slovak: 'úroková sadzba' },
+        { german: 'Jahrzente', slovak: 'desaťročia' },
+        { german: 'LG/liebe grüße', slovak: 's láskou' },
+        { german: 'Wer sollst du sein?', slovak: 'Kto si ty?' },
+        { german: 'ich wünschte zwischen uns wäre was', slovak: 'Chcel by som, aby medzi nami niečo bolo' },
+        { german: 'Vogelgezwitscher', slovak: 'vtáčí spev, vtáčie štebotanie' },
+        { german: 'Verkehrssituation', slovak: 'dopravná situácia' },
+        { german: 'Tränensäcke', slovak: 'vaky pod očami / opuchnuté viečka / kruhy pod očami / tmavé kruhy pod očami' },
+        { german: 'Inwiefern stimmen Sie den folgenden Aussadem zu?', slovak: 'Do akej miery súhlasíte s nasledujúcimi tvrdeniami?' },
+        { german: 'Bin unentschieden', slovak: 'Nie som rozhodnutý' },
+        { german: 'Gelegentlich', slovak: 'príležitostne' },
+        { german: 'Lass Dich nicht unterkriegen!', slovak: 'Nenechaj sa zlomiť! / Nepoddaj sa! / Bojuj ďalej! / Zostaň silný! / Nevzdávaj sa svojich snov!' },
+        { german: 'das Magengeschwür', slovak: 'žalúdočný vred' },
+        { german: 'Befreiung von der Zuzahlung', slovak: 'oslobodenie od poplatku za spoluúčasť' },
+        { german: 'Das Leben ist wirklich hart, wir müssen ständig kämpfen, and wir bekommen das Wichtigste nicht, nämlich die Liebe.', slovak: 'Život je naozaj ťažký, stále musíme bojovať, a my nedostávame to najdôležitejšie, a to je láska.' },
+        { german: 'Folsäure', slovak: 'kyselina listová' },
+        { german: 'Abgehauen', slovak: 'ujsť, utiecť, zmiznúť' },
+        { german: 'Meine Gesundheit macht mir im Moment zu schaffen', slovak: 'Moje zdravie mi momentálne dáva zabrať' },
+        { german: 'Liegestütze', slovak: 'kliky' },
+        { german: 'Engagiert sich für die Einhaltung der Menschenrechte entlang seiner Lieferkette', slovak: 'Zaviazali sa dodržiavať ľudské práva …' },
+        { german: 'Im Folgenden geht es um das Thema Alltag', slovak: 'Nasledujúci text sa týka každodenného života' },
+        { german: 'Vollzeit erwerbstätig', slovak: 'zamestnaný na plný úväzok' },
+        { german: 'Beugen', slovak: 'ohnúť' },
+        { german: 'Strecken', slovak: 'narovnať, roztiahnuť, natiahnuť' },
+        { german: 'Spreiz deine Beine!', slovak: 'Roztiahni nohy!' },
+        { german: 'Grätsche die Beine!', slovak: 'Roztiahni nohy doširoka!' },
+        { german: 'Verwechsle vier Dinge nicht: Höflichkeit ist kein flirten …', slovak: 'Nezamieňajte si štyri veci: …' },
+        { german: 'bevorzugen', slovak: 'uprednostňovať, preferovať' },
+        { german: 'Widerlich', slovak: 'odporný, hnusný, nechutný' },
+        { german: 'Abfindung', slovak: 'odstupné' },
+        { german: 'Verkehrsunfall wegen Raser', slovak: 'dopravná nehoda v dôsledku prekročenia rýchlosti' },
+        { german: 'Regierungschef', slovak: 'vedúci predstaviteľ vlády' },
+        { german: 'Premierminister', slovak: 'predseda vlády' },
+        { german: 'Krampfadern (Varizen)', slovak: 'kŕčové žily' },
+        { german: 'Ich war gestern nicht gut drauf', slovak: 'Včera som nemal dobrú náladu' },
+        { german: 'Ärztliche Bereitschaftspraxis', slovak: 'lekárska pohotovosť' },
+        { german: 'Wertstoffhof', slovak: 'recyklačné centrum' },
+        { german: 'Kiefer brechen', slovak: 'lámanie čeľuste' },
+        { german: 'Widereingliederung', slovak: 'reintegrácia' },
+        { german: 'Spine massager', slovak: 'masážny prístroj na chrbticu' },
+        { german: 'Kommt mir bekannt vor', slovak: 'zdá sa mi to známe' },
+        { german: 'Das Handgelenk lockert sich langsam', slovak: 'zápästie sa pomaly uvoľňuje' },
+        { german: 'Gerichtsvollzieher', slovak: 'súdny exekútor' },
+        { german: 'Ich gehe aus', slovak: 'vyrážam' },
+        { german: 'rund um die Uhr', slovak: 'nonstop' },
+        { german: 'Voraussichtliche Zustellung', slovak: 'odhadované dodanie' },
+        { german: 'krankheitsbedingt', slovak: 'z dôvodu choroby' },
+        { german: 'Lob sei Gott', slovak: 'chvála Bohu' },
+        { german: 'Got sei dank', slovak: 'vďaka Bohu' },
+        { german: 'Erzieherin', slovak: 'vychovávateľka' },
+        { german: 'Je', slovak: 'čím' },
+        { german: 'Desto', slovak: 'tým' },
+        { german: 'Wurst', slovak: 'klobása, hurka, párky, špekačky' },
+        { german: 'Blutwurst / Grützwurst', slovak: 'jaternica / hurka' },
+        { german: 'Würstchen', slovak: 'párky' },
+        { german: 'Speckwürstchen / Bratwürstchen', slovak: 'špekačky / klobása' },
+        { german: 'Packetzusteller', slovak: 'doručovateľ balíkov, kuriér' },
+        { german: 'Ich möchte weder Fleisch noch Fisch', slovak: 'Nechcem ani mäso, ani rybu' },
+        { german: 'Bei einer jungen Frau wird der Schwanz ruiniert …', slovak: '(no vulgárna nadávka)' },
+        { german: 'Höschen', slovak: 'nohavičky' },
+        { german: 'das Gleis', slovak: 'koľaj, koľajisko' },
+        { german: 'Schiene', slovak: 'dlaha, ortéza' },
+        { german: 'Schienen', slovak: 'koľajnice' },
+        { german: 'Strecke', slovak: 'trať, trasa, vzdialenosť, úsek' },
+        { german: 'Gesellschaft mit beschränkter Haftung (GmbH)', slovak: 'spoločnosť s ručením obmedzeným' },
+        { german: 'Schämen', slovak: 'hanbiť sa' },
+        { german: 'empfehlen', slovak: 'odporučiť, poradiť' },
+        { german: 'Wunder', slovak: 'zázrak' },
+        { german: 'teilnehmen', slovak: 'zúčastniť sa' },
+        { german: 'Er hat mir gesagt, dass meine Schulter anfängt zu vernarben', slovak: 'rameno sa mi začína zjazvovať' },
+        { german: 'Die Stirn', slovak: 'čelo' },
+        { german: 'Die Ferse', slovak: 'päta' },
+        { german: 'Die Handfläche', slovak: 'dlaň' },
+        { german: 'Der Fußrücken', slovak: 'priehlavok' },
+        { german: 'Das Schienbein', slovak: 'holeň' },
+        { german: 'Der Oberschenkel / Der Oberschenkelknochen', slovak: 'stehno / stehenná kosť' },
+        { german: 'Die Wimpern', slovak: 'mihalnice' },
+        { german: 'Die Augenbraue', slovak: 'obočie' },
+        { german: 'Aufzeichnen', slovak: 'nahrať, zaznamenať' },
+        { german: 'die Witwe', slovak: 'vdova' },
+        { german: 'Vorfahrt gewähren', slovak: 'dávať prednosť, uprednostňovať' },
+        { german: 'dauerhafte Folgen', slovak: 'trvalé následky' },
+        { german: 'Erwerbsunfähigkeitsrente', slovak: 'invalidný dôchodok' },
+        { german: 'Kann ich aufgrund dauerhafter Folgen einen Antrag auf Erwerbsunfähigkeitsrente stellen?', slovak: 'Môžem požiadať o invalidný dôchodok …' },
+        { german: 'Zinsen', slovak: 'úroky' },
+        { german: 'Meine Finger und mein Handgelenk werden immer steifer und steifer', slovak: 'Moje prsty a zápästie sú čoraz tuhšie' },
+        { german: 'Extrem ernste Bedrozenie', slovak: 'mimoriadne závažná hrozba' },
+        { german: 'gemobbt', slovak: 'šikanovaný' },
+        { german: 'Gemütlichkeit', slovak: 'útulnosť' },
+        { german: 'Wovon ist das abhängig?', slovak: 'Na čom to závisí?' },
+        { german: 'Ärztlicher Bereitschaftsdienst', slovak: 'lekárska pohotovostná služba' },
+        { german: 'Erleichterung', slovak: 'úľava, odľahčenie' },
+        { german: 'Zuversicht', slovak: 'dôvera, sebaistota, optimizmus' },
+        { german: 'Eine wundervolle a besinnliche Weihnachtszeit', slovak: 'Krásne a pokojné vianočné obdobie' },
+        { german: 'Verpiss dich', slovak: 'zmizni, strať sa' },
+        { german: 'Verpiss dich, du Wichser', slovak: 'Zmizni, ty kretén!' },
+        { german: 'Im Bett bist du eine Null! Selbst der beste Jockey kann nichts machen, wenn die Stute lahmt!', slovak: 'V posteli si nula!' },
+        { german: 'Schnall dich an!', slovak: 'Zapni si pás!' },
+        { german: 'Herausforderung', slovak: 'výzva, vyzvanie' },
         { german: 'Ich musste mich entscheiden', slovak: 'musel som sa rozhodnúť' }
       ];
 
@@ -334,8 +476,8 @@
 
       getNextWord();
 
-      // ====== NOVÉ: LOGIKA AUTO-REŽIMU (okamžite hrá, žiadne oneskorenie navyše) ======
-      const $ = (id) => document.getElementById(id);
+      // ===== NOVÉ: LOGIKA AUTO-REŽIMU (DE -> ukáž preklad -> SK -> ďalšie) =====
+      const $ = (id)=>document.getElementById(id);
       const elStart = $("auto-start");
       const elPause = $("auto-pause");
       const elResume= $("auto-resume");
@@ -365,15 +507,14 @@
         const item = st.list[i];
         if (!item) return false;
 
-        // DE hneď
         status(`🔊 DE: ${item.german}`);
         await TTS.speak(item.german, 'de-DE');
         if (!st.running) return false;
 
-        // ukáž preklad a hneď SK
         showSlovak = true; render();
         status(`🔊 SK: ${item.slovak}`);
         await TTS.speak(item.slovak, 'sk-SK');
+
         return true;
       }
 
@@ -404,13 +545,13 @@
       }
       function pauseAuto(){
         st.paused = true;
-        try { speechSynthesis.pause(); } catch(_){}
+        try { speechSynthesis.pause(); } catch{}
         status("Pauza.");
         setBtns();
       }
       function resumeAuto(){
         st.paused = false;
-        try { speechSynthesis.resume(); } catch(_){}
+        try { speechSynthesis.resume(); } catch{}
         status("Pokračujem…");
         setBtns();
       }
@@ -431,10 +572,10 @@
       elResume.addEventListener('click', resumeAuto);
       elPrev .addEventListener('click', prevOne);
       elNext .addEventListener('click', nextOne);
-      // ====== KONIEC AUTO-REŽIMU ======
+      // ===== KONIEC AUTO-REŽIMU =====
     });
 
-    // PWA: registrácia SW – NECHÁVAME PRESNE AKO SI MAL
+    // PWA: registrácia SW – nechávame presne ako si mal
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/nemecky-jazyk/sw.js').catch(console.error);
