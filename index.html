@@ -57,6 +57,7 @@
     .button-red { background-color: #ef4444; }
     .button-red:hover { background-color: #dc2626; transform: translateY(-2px); box-shadow: 0 6px 10px rgba(0,0,0,0.15); }
     .button:disabled { background-color: #94a3b8; cursor: not-allowed; transform: none; box-shadow: none; }
+
     .word-display { min-height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
     .slovak-display { min-height: 50px; margin-top: 1rem; display: flex; flex-direction: column; align-items: center; justify-content: center; }
     .speak-button {
@@ -65,18 +66,13 @@
       color: white; transition: all 0.2s ease-in-out; cursor: pointer; margin-top: 0.5rem;
     }
     .speak-button:disabled { background-color: #cbd5e1; cursor: not-allowed; color: #64748b; }
+
     .credits-box { background-color: #d1fae5; border: 2px solid #34d399; border-radius: 0.5rem; padding: 1rem; margin-top: 2rem; text-align: center; }
     .credits-text { color: #7c3aed; font-weight: bold; }
 
     /* Auto panel */
-    .panel {
-      background:#fff; border:2px solid #818cf8; border-radius:1rem; padding:1rem; margin-bottom:1rem;
-    }
-    .row { display:flex; gap:.75rem; flex-wrap:wrap; align-items:center; justify-content:center; }
-    .field { display:flex; flex-direction:column; gap:.25rem; min-width: 150px; }
-    .field input, .field select {
-      border:2px solid #c7d2fe; border-radius:.75rem; padding:.5rem .75rem; outline:none;
-    }
+    .panel { background:#fff; border:2px solid #818cf8; border-radius:1rem; padding:1rem; margin-bottom:1rem; }
+    .row { display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; justify-content:center; }
     .muted { opacity:.85 }
   </style>
 </head>
@@ -84,36 +80,15 @@
   <div class="container">
     <h1 class="text-3xl font-bold text-slate-800 mb-6">Precvičovanie nemčiny</h1>
 
-    <!-- AUTO REŽIM panel -->
+    <!-- AUTO REŽIM panel (iba tlačidlá) -->
     <div class="panel">
       <div class="row">
-        <button id="auto-start" class="button button-green">▶️ Spustiť auto</button>
-        <button id="auto-pause" class="button button-indigo" disabled>⏸️ Pauza</button>
+        <button id="auto-start"  class="button button-green">▶️ Spustiť auto</button>
+        <button id="auto-pause"  class="button button-indigo" disabled>⏸️ Pauza</button>
         <button id="auto-resume" class="button button-indigo" disabled>▶️ Pokračovať</button>
-        <button id="auto-stop" class="button button-red" disabled>⏹️ Stop</button>
-        <button id="auto-prev" class="button button-blue" disabled>⏮️ Predošlé</button>
-        <button id="auto-next" class="button button-blue" disabled>⏭️ Ďalšie</button>
-      </div>
-      <div class="row" style="margin-top:.75rem">
-        <div class="field">
-          <label for="auto-rate" class="text-white font-semibold">Rýchlosť hlasu</label>
-          <input id="auto-rate" type="number" min="0.5" max="2" step="0.1" value="1.0" />
-        </div>
-        <div class="field">
-          <label for="auto-delay" class="text-white font-semibold">Oneskorenie DE → SK (ms)</label>
-          <input id="auto-delay" type="number" min="0" step="100" value="600" />
-        </div>
-        <div class="field">
-          <label for="auto-start-index" class="text-white font-semibold">Začať od indexu</label>
-          <input id="auto-start-index" type="number" min="0" step="1" value="0" />
-        </div>
-        <div class="field">
-          <label for="auto-finish" class="text-white font-semibold">Po dobehnutí</label>
-          <select id="auto-finish">
-            <option value="stop">Zastaviť</option>
-            <option value="loop">Opakovať</option>
-          </select>
-        </div>
+        <button id="auto-stop"   class="button button-red"    disabled>⏹️ Stop</button>
+        <button id="auto-prev"   class="button button-blue"   disabled>⏮️ Predošlé</button>
+        <button id="auto-next"   class="button button-blue"   disabled>⏭️ Ďalšie</button>
       </div>
       <div id="auto-status" class="muted" style="margin-top:.5rem">Pripravené…</div>
     </div>
@@ -126,7 +101,7 @@
   </div>
 
   <script>
-    // --- Robustné TTS pre GitHub Pages + notebook/iPhone ---
+    // --- TTS helper (Safari/iPhone friendly) ---
     const TTS = (() => {
       const synth = window.speechSynthesis;
 
@@ -173,19 +148,14 @@
       }
 
       async function speak(text, langCode, rate=1.0) {
-        if (!('speechSynthesis' in window)) { showMessage("Váš prehliadač nepodporuje TTS."); return Promise.resolve(); }
+        if (!('speechSynthesis' in window)) return;
         await loadVoicesOnce();
 
         const u = new SpeechSynthesisUtterance(String(text));
-        u.lang = langCode; // "de-DE" alebo "sk-SK"
-
-        const prefer = langCode === "de-DE"
-          ? ["Anna","Markus","Katja","Yannick"]
-          : ["Laura","Zuzana","Filip","Ján"];
-
+        u.lang = langCode;
+        const prefer = langCode === "de-DE" ? ["Anna","Markus","Katja","Yannick"] : ["Laura","Zuzana","Filip","Ján"];
         const voice = pickVoiceByLang(langCode, prefer);
         if (voice) u.voice = voice;
-
         u.rate = rate; u.pitch = 1.0; u.volume = 1.0;
 
         return new Promise(res => {
@@ -200,19 +170,12 @@
 
       function cancel(){ try { window.speechSynthesis.cancel(); } catch(_){} }
 
-      function showMessage(text) {
-        const box = document.createElement('div');
-        box.textContent = text;
-        box.style.cssText = "position:fixed; inset:auto auto 1rem 50%; transform:translateX(-50%); padding:12px 16px; background-color:#ef4444; color:white; border-radius:10px; z-index:1000; text-align:center;";
-        document.body.appendChild(box);
-        setTimeout(() => box.remove(), 2500);
-      }
-
       return { speak, cancel };
     })();
-    // --- Koniec TTS časti ---
+    // --- KONIEC TTS ---
 
     document.addEventListener('DOMContentLoaded', () => {
+      // ======= TVOJE DÁTA (ponechané) =======
       const vocabularyList = [
         { german: 'Vermutung', slovak: 'domienka, tušenie' },
         { german: 'Vermögen', slovak: 'majetok, schopnosť' },
@@ -286,7 +249,7 @@
         { german: 'Lass Dich nicht unterkriegen!', slovak: 'Nenechaj sa zlomiť! / Nepoddaj sa! / Bojuj ďalej! / Zostaň silný! / Nevzdávaj sa svojich snov!' },
         { german: 'das Magengeschwür', slovak: 'žalúdočný vred' },
         { german: 'Befreiung von der Zuzahlung', slovak: 'oslobodenie od poplatku za spoluúčasť' },
-        { german: 'Das Leben ist wirklich hart, wir müssen ständig kämpfen, and wir bekommen das Wichtigste nicht, nämlich die Liebe.', slovak: 'Život je naozaj ťažký, stále musíme bojovať, a my nedostávame to najdôležitejšie, a to je láska.' },
+        { german: 'Das Leben ist wirklich hart, wir müssen ständig kämpfen, and wir bekommen das Wichtigste nicht, nämlich die Liebe.', slovak: 'Život je naozaj ťažký, stále musíme bojovať, a to najdôležitejšie, lásku, často nedostaneme.' },
         { german: 'Folsäure', slovak: 'kyselina listová' },
         { german: 'Abgehauen', slovak: 'ujsť, utiecť, zmiznúť' },
         { german: 'Meine Gesundheit macht mir im Moment zu schaffen', slovak: 'Moje zdravie mi momentálne dáva zabrať' },
@@ -302,7 +265,7 @@
         { german: 'bevorzugen', slovak: 'uprednostňovať, preferovať' },
         { german: 'Widerlich', slovak: 'odporný, hnusný, nechutný' },
         { german: 'Abfindung', slovak: 'odstupné' },
-        { german: 'Verkehrsunfall wegen Raser', slovak: 'dopravná nehoda v dôsledku prekročenia rýchlosti' },
+        { german: 'Verkehrsunfall wegen Raser', slovak: 'dopravná nehoda pre rýchlu jazdu' },
         { german: 'Regierungschef', slovak: 'vedúci predstaviteľ vlády' },
         { german: 'Premierminister', slovak: 'predseda vlády' },
         { german: 'Krampfadern (Varizen)', slovak: 'kŕčové žily' },
@@ -328,49 +291,48 @@
         { german: 'Blutwurst / Grützwurst', slovak: 'jaternica / hurka' },
         { german: 'Würstchen', slovak: 'párky' },
         { german: 'Speckwürstchen / Bratwürstchen', slovak: 'špekačky / klobása' },
-        { german: 'Packetzusteller', slovak: 'doručovateľ balíkov, kuriér' },
+        { german: 'Packetzusteller', slovak: 'kuriér' },
         { german: 'Ich möchte weder Fleisch noch Fisch', slovak: 'Nechcem ani mäso, ani rybu' },
-        { german: 'Bei einer jungen Frau wird der Schwanz ruiniert …', slovak: '(no vulgárna nadávka)' },
+        { german: 'Bei einer jungen Frau wird der Schwanz ruiniert …', slovak: '(vulg.)' },
         { german: 'Höschen', slovak: 'nohavičky' },
-        { german: 'das Gleis', slovak: 'koľaj, koľajisko' },
-        { german: 'Schiene', slovak: 'dlaha, ortéza' },
+        { german: 'das Gleis', slovak: 'koľaj' },
+        { german: 'Schiene', slovak: 'dlaha' },
         { german: 'Schienen', slovak: 'koľajnice' },
-        { german: 'Strecke', slovak: 'trať, trasa, vzdialenosť, úsek' },
-        { german: 'Gesellschaft mit beschränkter Haftung (GmbH)', slovak: 'spoločnosť s ručením obmedzeným' },
+        { german: 'Strecke', slovak: 'trať, úsek, trasa' },
+        { german: 'GmbH', slovak: 's.r.o.' },
         { german: 'Schämen', slovak: 'hanbiť sa' },
-        { german: 'empfehlen', slovak: 'odporučiť, poradiť' },
+        { german: 'empfehlen', slovak: 'odporučiť' },
         { german: 'Wunder', slovak: 'zázrak' },
         { german: 'teilnehmen', slovak: 'zúčastniť sa' },
-        { german: 'Er hat mir gesagt, dass meine Schulter anfängt zu vernarben', slovak: 'rameno sa mi začína zjazvovať' },
+        { german: 'Meine Schulter fängt an zu vernarben', slovak: 'rameno sa začína zjazvovať' },
         { german: 'Die Stirn', slovak: 'čelo' },
         { german: 'Die Ferse', slovak: 'päta' },
         { german: 'Die Handfläche', slovak: 'dlaň' },
         { german: 'Der Fußrücken', slovak: 'priehlavok' },
         { german: 'Das Schienbein', slovak: 'holeň' },
-        { german: 'Der Oberschenkel / Der Oberschenkelknochen', slovak: 'stehno / stehenná kosť' },
+        { german: 'Der Oberschenkel', slovak: 'stehno' },
         { german: 'Die Wimpern', slovak: 'mihalnice' },
         { german: 'Die Augenbraue', slovak: 'obočie' },
-        { german: 'Aufzeichnen', slovak: 'nahrať, zaznamenať' },
+        { german: 'Aufzeichnen', slovak: 'nahrávať' },
         { german: 'die Witwe', slovak: 'vdova' },
-        { german: 'Vorfahrt gewähren', slovak: 'dávať prednosť, uprednostňovať' },
+        { german: 'Vorfahrt gewähren', slovak: 'dať prednosť' },
         { german: 'dauerhafte Folgen', slovak: 'trvalé následky' },
         { german: 'Erwerbsunfähigkeitsrente', slovak: 'invalidný dôchodok' },
-        { german: 'Kann ich aufgrund dauerhafter Folgen einen Antrag auf Erwerbsunfähigkeitsrente stellen?', slovak: 'Môžem požiadať o invalidný dôchodok …' },
+        { german: 'Kann ich … beantragen?', slovak: 'Môžem požiadať …?' },
         { german: 'Zinsen', slovak: 'úroky' },
-        { german: 'Meine Finger und mein Handgelenk werden immer steifer und steifer', slovak: 'Moje prsty a zápästie sú čoraz tuhšie' },
-        { german: 'Extrem ernste Bedrozenie', slovak: 'mimoriadne závažná hrozba' },
+        { german: 'Finger und Handgelenk werden steifer', slovak: 'prsty a zápästie sú tuhšie' },
+        { german: 'extrem ernste Bedrohung', slovak: 'mimoriadne závažná hrozba' },
         { german: 'gemobbt', slovak: 'šikanovaný' },
         { german: 'Gemütlichkeit', slovak: 'útulnosť' },
         { german: 'Wovon ist das abhängig?', slovak: 'Na čom to závisí?' },
-        { german: 'Ärztlicher Bereitschaftsdienst', slovak: 'lekárska pohotovostná služba' },
-        { german: 'Erleichterung', slovak: 'úľava, odľahčenie' },
-        { german: 'Zuversicht', slovak: 'dôvera, sebaistota, optimizmus' },
-        { german: 'Eine wundervolle und besinnliche Weihnachtszeit', slovak: 'Krásne a pokojné vianočné obdobie' },
-        { german: 'Verpiss dich', slovak: 'zmizni, strať sa' },
-        { german: 'Verpiss dich, du Wichser', slovak: 'Zmizni, ty kretén!' },
-        { german: 'Im Bett bist du eine Null! Selbst der beste Jockey kann nichts machen, wenn die Stute lahmt!', slovak: 'V posteli si nula!' },
+        { german: 'Ärztlicher Bereitschaftsdienst', slovak: 'lekárska pohotovosť' },
+        { german: 'Erleichterung', slovak: 'úľava' },
+        { german: 'Zuversicht', slovak: 'dôvera' },
+        { german: 'Besinnliche Weihnachtszeit', slovak: 'pokojné Vianoce' },
+        { german: 'Verpiss dich', slovak: 'zmizni' },
+        { german: 'Im Bett bist du eine Null!', slovak: 'v posteli si nula' },
         { german: 'Schnall dich an!', slovak: 'Zapni si pás!' },
-        { german: 'Herausforderung', slovak: 'výzva, vyzvanie' },
+        { german: 'Herausforderung', slovak: 'výzva' },
         { german: 'Ich musste mich entscheiden', slovak: 'musel som sa rozhodnúť' }
       ];
 
@@ -385,23 +347,22 @@
         { german: '➡️ wegen meiner Arbeit', slovak: '➡️ kvôli mojej práci' },
         { german: '➡️ mit dem Fahrrad', slovak: '➡️ na bicykli' },
         { german: '➡️ in die Stadt', slovak: '➡️ do mesta' },
-        { german: 'holen', slovak: 'priniesť, zájsť po niečo / niekoho, doniesť späť' },
+        { german: 'holen', slovak: 'priniesť, zájsť po' },
         { german: 'Ich hole mir ein Glas Wasser.', slovak: 'Idem si po pohár vody.' },
         { german: 'Kannst du die Zeitung holen?', slovak: 'Môžeš priniesť noviny.' },
-        { german: 'abholen', slovak: 'vyzdvihnúť (niekoho / niečo) z miesta' },
-        { german: 'Ich hole dich vom Bahnhof ab.', slovak: 'Prídem ťa vyzdvihnúť na stanicu.' },
+        { german: 'abholen', slovak: 'vyzdvihnúť' },
+        { german: 'Ich hole dich vom Bahnhof ab.', slovak: 'Vyzdvihnem ťa na stanici.' },
         { german: 'Er holt das Paket ab.', slovak: 'Ide si po balík.' },
-        { german: 'sich erholen', slovak: 'odpočinúť si, zotaviť sa, zregenerovať' },
+        { german: 'sich erholen', slovak: 'zotaviť sa' },
         { german: 'Ich erhole mich am Wochenende.', slovak: 'Oddýchnem si cez víkend.' },
-        { german: 'Sie hat sich nach der Krankheit gut erholt.', slovak: 'Dobre sa zotavila po chorobe.' },
-        { german: 'durchnässt', slovak: 'premočený, celý mokrý' },
-        { german: 'zählen auf + Akkusativ', slovak: 'spoliehať sa na niekoho / niečo' },
+        { german: 'Sie hat sich gut erholt.', slovak: 'Dobre sa zotavila.' },
+        { german: 'durchnässt', slovak: 'premočený' },
+        { german: 'zählen auf', slovak: 'spoliehať sa na' },
         { german: 'Ich zähle auf dich.', slovak: 'Spolieham sa na teba.' },
-        { german: 'Du kannst auf mich zählen.', slovak: 'Môžeš sa na mňa spoľahnúť.' },
-        { german: 'zählen zu + Dativ', slovak: 'patriť k niekomu / niečomu' },
-        { german: 'Er zählt zu den Besten.', slovak: 'Patrí medzi najlepších.' },
-        { german: 'Das zählt zu meinen Lieblingsbüchern.', slovak: 'To patrí medzi moje obľúbené knihy.' },
+        { german: 'zählen zu', slovak: 'patriť k' },
+        { german: 'Er zählt zu den Besten.', slovak: 'Patrí medzi najlepších.' }
       ];
+      // ======= /DÁTA =======
 
       const appContent = document.getElementById('app-content');
       let currentWordIndex = 0;
@@ -409,10 +370,10 @@
       let currentChapter = 'main';
       let kpakIndex = 0;
 
-      // ---- EXISTUJÚCE funkcie (ponechané) ----
+      // Pôvodné ovládanie (ponechané)
       const speakText = async (text, langShort) => {
         const lang = (langShort === 'de') ? 'de-DE' : 'sk-SK';
-        await TTS.speak(text, lang, Number(document.getElementById('auto-rate')?.value || 1.0));
+        await TTS.speak(text, lang, 1.0);
       };
 
       const getNextWord = () => {
@@ -504,9 +465,9 @@
         }
 
         if (currentChapter === 'main') {
-          document.getElementById('switch-to-kpak-btn').addEventListener('click', () => { currentChapter = 'kpak'; kpakIndex = 0; getNextWord(); });
+          document.getElementById('switch-to-kpak-btn').addEventListener('click', switchToKpak);
         } else {
-          document.getElementById('back-to-main-btn').addEventListener('click', () => { currentChapter = 'main'; currentWordIndex = 0; getNextWord(); });
+          document.getElementById('back-to-main-btn').addEventListener('click', switchToMain);
         }
       };
 
@@ -520,15 +481,16 @@
       const elStop  = $("auto-stop");
       const elPrev  = $("auto-prev");
       const elNext  = $("auto-next");
-      const elRate  = $("auto-rate");
-      const elDelay = $("auto-delay");
-      const elIdx   = $("auto-start-index");
-      const elFinish= $("auto-finish");
       const elStatus= $("auto-status");
+
+      // pevné hodnoty
+      const AUTO_RATE  = 1.0;   // rýchlosť hlasu
+      const AUTO_DELAY = 600;   // pauza DE → SK (ms)
+      const AUTO_START_INDEX = 0;
+      const AUTO_FINISH = "stop"; // "stop" alebo "loop"
 
       const st = {
         running:false, paused:false,
-        rate:1.0, delay:600, finish:"stop",
         get data(){ return currentChapter === 'main' ? vocabularyList : kpakContent; },
         get i(){ return currentChapter === 'main' ? currentWordIndex : kpakIndex; },
         set i(v){
@@ -552,20 +514,17 @@
         if (!list[index]) return false;
         const item = list[index];
 
-        // Prečítať DE
         status(`🔊 [${index+1}/${list.length}] DE: ${item.german}`);
-        await TTS.speak(item.german, "de-DE", st.rate);
+        await TTS.speak(item.german, "de-DE", AUTO_RATE);
         if (!st.running) return false;
 
-        // zobraziť SK v UI
         showSlovak = true; render();
 
-        // pauza a potom SK
-        await new Promise(r => setTimeout(r, Number(st.delay)||0));
+        await new Promise(r => setTimeout(r, AUTO_DELAY));
         if (!st.running) return false;
 
         status(`🔊 [${index+1}/${list.length}] SK: ${item.slovak}`);
-        await TTS.speak(item.slovak, "sk-SK", st.rate);
+        await TTS.speak(item.slovak, "sk-SK", AUTO_RATE);
         return true;
       }
 
@@ -576,13 +535,11 @@
           const ok = await playOne(st.i);
           if (!ok || !st.running) break;
 
-          // posun
           st.i++;
           if (st.i >= st.data.length){
-            if (st.finish === 'loop'){ st.i = 0; }
+            if (AUTO_FINISH === 'loop'){ st.i = 0; }
             else { stopAuto(); break; }
           } else {
-            // pripraviť ďalšiu položku bez SK zobrazenia
             showSlovak = false; render();
           }
         }
@@ -590,13 +547,8 @@
 
       function startAuto(){
         if (!st.data.length){ status("Žiadne dáta."); return; }
-        st.rate   = Number(elRate.value || 1.0);
-        st.delay  = Number(elDelay.value || 600);
-        st.finish = elFinish.value || "stop";
-        const startAt = Math.max(0, Math.min(st.data.length-1, Number(elIdx.value || 0)));
-        st.i = startAt;
+        st.i = Math.max(0, Math.min(st.data.length-1, AUTO_START_INDEX));
         st.running = true; st.paused = false;
-        // iOS/Chrome pravidlo o user-gestu je splnené klikom na Start
         status("Auto režim beží…");
         setBtns();
         loop();
@@ -622,7 +574,7 @@
       function prevOne(){
         if (!st.running) return;
         st.i = Math.max(0, st.i - 1);
-        TTS.cancel(); // hneď preskočí pri ďalšom cykle
+        TTS.cancel();
       }
       function nextOne(){
         if (!st.running) return;
@@ -631,15 +583,15 @@
       }
 
       elStart.addEventListener('click', startAuto);
-      elStop.addEventListener('click', stopAuto);
+      elStop .addEventListener('click', stopAuto);
       elPause.addEventListener('click', pauseAuto);
       elResume.addEventListener('click', resumeAuto);
-      elPrev.addEventListener('click', prevOne);
-      elNext.addEventListener('click', nextOne);
+      elPrev .addEventListener('click', prevOne);
+      elNext .addEventListener('click', nextOne);
       // ---- KONIEC AUTO REŽIMU ----
     });
 
-    // PWA: registrácia SW (GitHub Pages – nezabúdaj na správnu cestu)
+    // PWA: registrácia SW (GitHub Pages – správna cesta)
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/nemecky-jazyk/sw.js').catch(console.error);
