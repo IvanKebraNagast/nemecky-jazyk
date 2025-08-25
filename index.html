@@ -78,7 +78,7 @@
   <div class="container">
     <h1 class="text-3xl font-bold text-slate-800 mb-6">Precvičovanie nemčiny</h1>
 
-    <!-- ✅ NOVÉ: panel automatického prehrávania (bez inputov) -->
+    <!-- Panel automatického prehrávania (bez inputov) -->
     <div class="panel">
       <div class="row">
         <button id="auto-start"  class="button button-green">▶️ Spustiť auto</button>
@@ -91,7 +91,6 @@
       <div id="auto-status" class="muted" style="margin-top:.5rem;text-align:left">Pripravené…</div>
     </div>
 
-    <!-- pôvodný obsah aplikácie -->
     <div id="app-content"></div>
 
     <div class="credits-box">
@@ -100,7 +99,7 @@
   </div>
 
   <script>
-    // --- TTS – nezmenené, len vracia Promise aby sa dalo čakať na dohovorenie ---
+    // --- TTS (vracia Promise; iPhone-friendly) ---
     const TTS = (() => {
       const synth = window.speechSynthesis;
 
@@ -143,7 +142,7 @@
           const hit = list.find(v => (v.name || "").toLowerCase().includes(name.toLowerCase()));
           if (hit) return hit;
         }
-        return list[0];
+        return list[0] || null;
       }
 
       async function speak(text, langCode) {
@@ -153,10 +152,7 @@
         const u = new SpeechSynthesisUtterance(String(text));
         u.lang = langCode;
 
-        const prefer = langCode === "de-DE"
-          ? ["Anna","Markus","Katja","Yannick"]
-          : ["Laura","Zuzana","Filip","Ján"];
-
+        const prefer = langCode === "de-DE" ? ["Anna","Markus","Katja","Yannick"] : ["Laura","Zuzana","Filip","Ján"];
         const voice = pickVoiceByLang(langCode, prefer);
         if (voice) u.voice = voice;
 
@@ -177,7 +173,7 @@
     // --- Koniec TTS ---
 
     document.addEventListener('DOMContentLoaded', () => {
-      // ===== TVOJ PÔVODNÝ ZOZNAM – vložil som presne to, čo si poslal =====
+      // ===== TVOJ PÔVODNÝ ZOZNAM – CELÝ (presne ako si poslal) =====
       const vocabularyList = [
         { german: 'Vermutung', slovak: 'domienka, tušenie' },
         { german: 'Vermögen', slovak: 'majetok, schopnosť' },
@@ -362,7 +358,7 @@
         { german: 'durchnässt', slovak: 'premočený, celý mokrý' },
         { german: 'zählen auf + Akkusativ', slovak: 'spoliehať sa na niekoho / niečo' },
         { german: 'Ich zähle auf dich.', slovak: 'Spolieham sa na teba.' },
-        { german: 'Du kannst auf mich zählen.', slovak: 'Môžeš sa na mňa spoľahnúť.' },
+        { german: 'Du kannst na mňa zählen.', slovak: 'Môžeš sa na mňa spoľahnúť.' },
         { german: 'zählen zu + Dativ', slovak: 'patriť k niekomu / niečomu' },
         { german: 'Er zählt zu den Besten.', slovak: 'Patrí medzi najlepších.' },
         { german: 'Das zählt zu meinen Lieblingsbüchern.', slovak: 'To patrí medzi moje obľúbené knihy.' },
@@ -476,7 +472,7 @@
 
       getNextWord();
 
-      // ===== NOVÉ: LOGIKA AUTO-REŽIMU (DE -> ukáž preklad -> SK -> ďalšie) =====
+      // ===== AUTO-REŽIM (DE -> ukáž preklad -> SK -> ďalšie; bez oneskorení navyše) =====
       const $ = (id)=>document.getElementById(id);
       const elStart = $("auto-start");
       const elPause = $("auto-pause");
@@ -525,13 +521,28 @@
           const ok = await playItem(st.i);
           if (!ok || !st.running) break;
           st.i++;
-          if (st.i >= st.list.length) { stopAuto(); break; }
+          if (st.i >= st.list.length) {
+            if (currentChapter === 'main' && kpakContent.length) {
+              // po hlavnom zozname plynule pokračuj KPAK
+              currentChapter = 'kpak';
+              st.i = 0;
+              showSlovak = false; render();
+              continue;
+            } else {
+              stopAuto();
+              break;
+            }
+          }
           showSlovak = false; render();
         }
       }
 
       function startAuto(){
-        if (!st.list.length) return;
+        // Začni vždy od 1. položky hlavného zoznamu a prejdime až po KPAK
+        currentChapter = 'main';
+        currentWordIndex = 0;
+        kpakIndex = 0;
+
         st.running = true; st.paused = false;
         status("Auto režim beží…");
         setBtns();
@@ -575,7 +586,7 @@
       // ===== KONIEC AUTO-REŽIMU =====
     });
 
-    // PWA: registrácia SW – nechávame presne ako si mal
+    // PWA: registrácia SW – nechávame ako máš
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/nemecky-jazyk/sw.js').catch(console.error);
