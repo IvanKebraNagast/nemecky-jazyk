@@ -94,10 +94,10 @@
       <span class="credits-text">Vytvoril: Ivan Kebra Nagast</span>
     </div>
   </div>
-
   <script>
-    // ===== Ukladanie do localStorage (bez zmeny dizajnu/logiky) =====
+    // ===== Ukladanie slovníka užívateľa =====
     const LS_KEY = 'nemeckyVocabV1';
+    const PROGRESS_KEY = 'nemeckyProgressV1';
 
     function loadUserVocab() {
       try {
@@ -108,6 +108,27 @@
     }
     function saveUserVocab(list) {
       try { localStorage.setItem(LS_KEY, JSON.stringify(list)); } catch {}
+    }
+
+    // ===== Uloženie a načítanie progresu =====
+    function saveProgress() {
+      try {
+        localStorage.setItem(PROGRESS_KEY, JSON.stringify({
+          currentWordIndex,
+          kpakIndex,
+          currentChapter
+        }));
+      } catch {}
+    }
+    function loadProgress() {
+      try {
+        const raw = localStorage.getItem(PROGRESS_KEY);
+        if (!raw) return;
+        const obj = JSON.parse(raw);
+        if (obj.currentChapter) currentChapter = obj.currentChapter;
+        if (typeof obj.currentWordIndex === "number") currentWordIndex = obj.currentWordIndex;
+        if (typeof obj.kpakIndex === "number") kpakIndex = obj.kpakIndex;
+      } catch {}
     }
 
     // ===== TTS engine =====
@@ -154,8 +175,8 @@
       { german:"zusammenkommen", slovak:"dať sa dokopy, stretnúť sa" },
       { german:"auseinander", slovak:"od seba" },
       { german:"ein bisschen auseinanderstehen", slovak:"stáť trochu od seba" },
-      { german:"sich auseinanderentwickeln", slovak:"odcudziť sa; rozišli sa ich cesty",priklad:"Die beiden Freunde haben sich auseinanderentwickelt. → Tí dvaja priatelia sa odcudzili / ich cesty sa rozišli."
-},
+      { german:"sich auseinanderentwickeln", slovak:"odcudziť sa; rozišli sa ich cesty", 
+        priklad:"Die beiden Freunde haben sich auseinanderentwickelt. → Tí dvaja priatelia sa odcudzili / ich cesty sa rozišli." },
       { german:"begegnen", slovak:"stretnúť (sa s niekým)" },
       { german:"begegnet", slovak:"stretol (sa)" },
       { german:"der Zweifel", slovak:"pochybnosť" },
@@ -229,11 +250,8 @@
       { german:"strecken", slovak:"narovnať, natiahnuť" },
       { german:"Spreiz deine Beine!", slovak:"Roztiahni nohy!" },
       { german:"Grätsche die Beine!", slovak:"Roztiahni nohy doširoka!" },
-      { 
-  german:"Verwechsle vier Dinge nicht: Höflichkeit ist kein Flirten, Aufmerksamkeit ist keine Liebe, Schweigen ist kein Ärger, und Tränen sind keine Schwäche.", 
-  slovak:"Nezamieňaj si štyri veci: zdvorilosť nie je flirtovanie, pozornosť nie je láska, mlčanie nie je hnev a slzy nie sú slabosť." 
-},
-
+      { german:"Verwechsle vier Dinge nicht: Höflichkeit ist kein Flirten, Aufmerksamkeit ist keine Liebe, Schweigen ist kein Ärger, und Tränen sind keine Schwäche.", 
+        slovak:"Nezamieňaj si štyri veci: zdvorilosť nie je flirtovanie, pozornosť nie je láska, mlčanie nie je hnev a slzy nie sú slabosť." },
       { german:"widerlich", slovak:"odporný, hnusný" },
       { german:"Abfindung", slovak:"odstupné" },
       { german:"Verkehrsunfall wegen eines Rasers", slovak:"dopravná nehoda kvôli rýchlej jazde (vinníkom je „rýchlikár“)" },
@@ -263,8 +281,8 @@
       { german:"Würstchen", slovak:"párky" },
       { german:"Bratwürstchen", slovak:"špekačky, malé klobásky" },
       { german:"Paketzusteller", slovak:"doručovateľ balíkov, kuriér" },
-
-      { german:"Bei einer jungen Frau geht der Schwanz kaputt, aber bei einer alten Frau kann man gut üben.", slovak:"Na mladej žene sa kokot ničí, na starej žene sa dobre cvičí" },
+      { german:"Bei einer jungen Frau geht der Schwanz kaputt, aber bei einer alten Frau kann man gut üben.", 
+        slovak:"Na mladej žene sa kokot ničí, na starej žene sa dobre cvičí" },
 
       { german:"Höschen", slovak:"nohavičky" },
       { german:"das Gleis", slovak:"koľaj, nástupište" },
@@ -290,9 +308,11 @@
       { german:"Vorfahrt gewähren", slovak:"dať prednosť v jazde" },
       { german:"dauerhafte Folgen", slovak:"trvalé následky" },
       { german:"Erwerbsunfähigkeitsrente", slovak:"invalidný dôchodok" },
-      { german:"Kann ich aufgrund dauerhafter Folgen einen Antrag auf Erwerbsunfähigkeitsrente stellen?", slovak:"Môžem požiadať o invalidný dôchodok kvôli trvalým následkom?" },
+      { german:"Kann ich aufgrund dauerhafter Folgen einen Antrag auf Erwerbsunfähigkeitsrente stellen?", 
+        slovak:"Môžem požiadať o invalidný dôchodok kvôli trvalým následkom?" },
       { german:"Zinsen", slovak:"úroky" },
-      { german:"Meine Finger und mein Handgelenk werden immer steifer und steifer", slovak:"Moje prsty a zápästie sú čoraz tuhšie" },
+      { german:"Meine Finger und mein Handgelenk werden immer steifer und steifer", 
+        slovak:"Moje prsty a zápästie sú čoraz tuhšie" },
       { german:"extrem ernste Bedrohung", slovak:"mimoriadne vážna hrozba" },
       { german:"gemobbt", slovak:"šikanovaný" },
       { german:"Gemütlichkeit", slovak:"útulnosť, pohoda" },
@@ -303,7 +323,8 @@
       { german:"Eine wundervolle und besinnliche Weihnachtszeit", slovak:"Krásne a pokojné Vianoce" },
       { german:"Verpiss dich!", slovak:"Zmizni, strať sa!" },
       { german:"Verpiss dich, du Wichser!", slovak:"Zmizni, ty kretén!" },
-      { german:"Im Bett bist du eine Null! Selbst der beste Jockey kann nichts machen, wenn die Stute lahmt!", slovak:"V posteli si nula! Ani najlepší džokej nič nezmôže, keď kobyla kríva!" },
+      { german:"Im Bett bist du eine Null! Selbst der beste Jockey kann nichts machen, wenn die Stute lahmt!", 
+        slovak:"V posteli si nula! Ani najlepší džokej nič nezmôže, keď kobyla kríva!" },
       { german:"Schnall dich an!", slovak:"Zapni si pás!" },
       { german:"Herausforderung", slovak:"výzva" },
       { german:"Ich musste mich entscheiden", slovak:"Musel som sa rozhodnúť" },
@@ -362,10 +383,14 @@
       { german:"Deutsche Lebens-Rettungs-Gesellschaft (DLRG)", slovak:"Nemecká spoločnosť pre záchranu života" },
       { german:"Rohrzucker", slovak:"trstinový cukor" },
       { german:"Fernweh", slovak:"túžba po cestovaní" },
-      { german:"Nachdem die Rechnung bezahlt worden war, wurde die Ware verschickt.", slovak:"Potom, čo bola faktúra zaplatená, bol tovar odoslaný." },
-      { german:"Ich weiß nicht, warum ich mich damit beschäftigen sollte.", slovak:"Neviem, prečo by som sa tým mal zaoberať." },
-      { german:"Könnten Sie mir bitte nähere Informationen mitteilen, damit ich Ihnen dabei helfen kann?", slovak:"Mohli by ste mi, prosím, poskytnúť bližšie informácie, aby som vám mohol pomôcť?" },
-      { german:"Dürfte ich Sie um nähere Informationen über diese Angelegenheit bitten?", slovak:"Smel by som vás požiadať o bližšie informácie o tejto záležitosti?" },
+      { german:"Nachdem die Rechnung bezahlt worden war, wurde die Ware verschickt.", 
+        slovak:"Potom, čo bola faktúra zaplatená, bol tovar odoslaný." },
+      { german:"Ich weiß nicht, warum ich mich damit beschäftigen sollte.", 
+        slovak:"Neviem, prečo by som sa tým mal zaoberať." },
+      { german:"Könnten Sie mir bitte nähere Informationen mitteilen, damit ich Ihnen dabei helfen kann?", 
+        slovak:"Mohli by ste mi, prosím, poskytnúť bližšie informácie, aby som vám mohol pomôcť?" },
+      { german:"Dürfte ich Sie um nähere Informationen über diese Angelegenheit bitten?", 
+        slovak:"Smel by som vás požiadať o bližšie informácie o tejto záležitosti?" },
       { german:"die Fußsohle", slovak:"chodidlo, ploska nohy" },
       { german:"die Zehen", slovak:"prsty na nohe" },
       { german:"Benachrichtigungen aktivieren", slovak:"zapnúť upozornenia" },
@@ -377,7 +402,6 @@
       { german:"Ich bin fix und fertig.", slovak:"Som úplne vyčerpaný" },
       { german:"Vorsichtig handhaben!", slovak:"Zachádzajte opatrne!" }
     ];
-
     // ===== Kapitola KPAK =====
     const kpakContent = [
       { german: "KPAK", slovak: "KPAK" },
@@ -388,7 +412,7 @@
       { german: "Ich gehe", slovak: "Idem / Pôjdem" },
       { german: "➡️ morgen", slovak: "➡️ zajtra" },
       { german: "➡️ wegen meiner Arbeit", slovak: "➡️ kvôli mojej práci" },
-            { german: "➡️ mit dem Fahrrad", slovak: "➡️ na bicykli" },
+      { german: "➡️ mit dem Fahrrad", slovak: "➡️ na bicykli" },
       { german: "➡️ in die Stadt", slovak: "➡️ do mesta" },
       { german: "holen", slovak: "priniesť, zájsť po (niečo/niekoho)" },
       { german: "Ich hole mir ein Glas Wasser.", slovak: "Idem si po pohár vody." },
@@ -420,6 +444,9 @@
     let currentChapter = 'main';
     let kpakIndex = 0;
 
+    // načítanie progresu (uloženého v localStorage)
+    loadProgress();
+
     const speakText = async (text, langShort) => {
       const lang = (langShort === 'de') ? 'de-DE' : 'sk-SK';
       await TTS.speak(text, lang);
@@ -432,6 +459,7 @@
       } else {
         if (kpakIndex >= kpakContent.length) kpakIndex = 0;
       }
+      saveProgress();
       render();
     };
 
@@ -439,10 +467,11 @@
     const handleNext = () => {
       if (currentChapter === 'main') currentWordIndex++;
       else kpakIndex++;
+      saveProgress();
       getNextWord();
     };
-    const switchToKpak = () => { currentChapter = 'kpak'; kpakIndex = 0; getNextWord(); };
-    const switchToMain = () => { currentChapter = 'main'; currentWordIndex = 0; getNextWord(); };
+    const switchToKpak = () => { currentChapter = 'kpak'; kpakIndex = 0; saveProgress(); getNextWord(); };
+    const switchToMain = () => { currentChapter = 'main'; currentWordIndex = 0; saveProgress(); getNextWord(); };
 
     function render() {
       let currentContent;
@@ -455,7 +484,7 @@
               <button id="restartBtn" class="button button-indigo mt-8">Začať odznova</button>
               <button id="switch-to-kpak-btn" class="button button-green mt-4">Prejsť na kapitolu KPAK</button>
             </div>`;
-          document.getElementById('restartBtn').addEventListener('click', () => { currentWordIndex = 0; getNextWord(); });
+          document.getElementById('restartBtn').addEventListener('click', () => { currentWordIndex = 0; saveProgress(); getNextWord(); });
           document.getElementById('switch-to-kpak-btn').addEventListener('click', switchToKpak);
           return;
         }
@@ -470,7 +499,7 @@
               <button id="restartKpakBtn" class="button button-green mt-4">Začať odznova kapitolu KPAK</button>
             </div>`;
           document.getElementById('back-to-main-btn').addEventListener('click', switchToMain);
-          document.getElementById('restartKpakBtn').addEventListener('click', () => { kpakIndex = 0; getNextWord(); });
+          document.getElementById('restartKpakBtn').addEventListener('click', () => { kpakIndex = 0; saveProgress(); getNextWord(); });
           return;
         }
         currentContent = kpakContent[kpakIndex];
@@ -519,7 +548,6 @@
 
     // prvé vykreslenie
     getNextWord();
-
     // ===== AUTO režim (bez zmeny UI) =====
     const $ = (id)=>document.getElementById(id);
     const elStart = $("auto-start");
@@ -625,7 +653,6 @@
     elResume.addEventListener('click', resumeAuto);
     elPrev .addEventListener('click', prevOne);
     elNext .addEventListener('click', nextOne);
-
     // ===== FORMULÁR: pridanie slova + ukladanie do localStorage =====
     const formBox = document.createElement('div');
     formBox.className = "panel";
@@ -642,10 +669,10 @@
       const slovak = document.getElementById('newSlovak').value.trim();
       if (!german || !slovak) return;
 
-      // uloženie do runtime zoznamu (zachová dizajn/logiku)
+      // uloženie do runtime zoznamu
       vocabularyList.push({ german, slovak });
 
-      // uloženie do localStorage (iba novinky, neničí existujúce)
+      // uloženie do localStorage (iba nové, neničí existujúce)
       const fresh = loadUserVocab();
       fresh.push({ german, slovak });
       saveUserVocab(fresh);
@@ -654,7 +681,6 @@
       document.getElementById('newGerman').value = "";
       document.getElementById('newSlovak').value = "";
     });
-
     // ===== Service worker (offline podpora) =====
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -664,8 +690,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
