@@ -94,10 +94,11 @@
       <span class="credits-text">Vytvoril: Ivan Kebra Nagast</span>
     </div>
   </div>
+
   <script>
-    // ===== Ukladanie slovníka užívateľa =====
-    const LS_KEY = 'nemeckyVocabV1';
-    const PROGRESS_KEY = 'nemeckyProgressV1';
+    // ===== Ukladanie do localStorage =====
+    const LS_KEY = 'nemeckyVocabV1';          // užívateľom pridané slová
+    const PROG_KEY = 'nemeckyProgressV1';     // progres: kapitola + indexy
 
     function loadUserVocab() {
       try {
@@ -110,24 +111,26 @@
       try { localStorage.setItem(LS_KEY, JSON.stringify(list)); } catch {}
     }
 
-    // ===== Uloženie a načítanie progresu =====
     function saveProgress() {
       try {
-        localStorage.setItem(PROGRESS_KEY, JSON.stringify({
-          currentWordIndex,
-          kpakIndex,
-          currentChapter
-        }));
+        const data = {
+          chapter: currentChapter,          // 'main' | 'kpak'
+          mainIndex: currentWordIndex|0,
+          kpakIndex: kpakIndex|0,
+          showSlovak: !!showSlovak
+        };
+        localStorage.setItem(PROG_KEY, JSON.stringify(data));
       } catch {}
     }
     function loadProgress() {
       try {
-        const raw = localStorage.getItem(PROGRESS_KEY);
+        const raw = localStorage.getItem(PROG_KEY);
         if (!raw) return;
-        const obj = JSON.parse(raw);
-        if (obj.currentChapter) currentChapter = obj.currentChapter;
-        if (typeof obj.currentWordIndex === "number") currentWordIndex = obj.currentWordIndex;
-        if (typeof obj.kpakIndex === "number") kpakIndex = obj.kpakIndex;
+        const d = JSON.parse(raw) || {};
+        if (d.chapter === 'kpak' || d.chapter === 'main') currentChapter = d.chapter;
+        if (Number.isInteger(d.mainIndex)) currentWordIndex = d.mainIndex;
+        if (Number.isInteger(d.kpakIndex)) kpakIndex = d.kpakIndex;
+        showSlovak = !!d.showSlovak;
       } catch {}
     }
 
@@ -175,8 +178,7 @@
       { german:"zusammenkommen", slovak:"dať sa dokopy, stretnúť sa" },
       { german:"auseinander", slovak:"od seba" },
       { german:"ein bisschen auseinanderstehen", slovak:"stáť trochu od seba" },
-      { german:"sich auseinanderentwickeln", slovak:"odcudziť sa; rozišli sa ich cesty", 
-        priklad:"Die beiden Freunde haben sich auseinanderentwickelt. → Tí dvaja priatelia sa odcudzili / ich cesty sa rozišli." },
+      { german:"sich auseinanderentwickeln", slovak:"odcudziť sa; rozišli sa ich cesty",priklad:"Die beiden Freunde haben sich auseinanderentwickelt. → Tí dvaja priatelia sa odcudzili / ich cesty sa rozišli."},
       { german:"begegnen", slovak:"stretnúť (sa s niekým)" },
       { german:"begegnet", slovak:"stretol (sa)" },
       { german:"der Zweifel", slovak:"pochybnosť" },
@@ -250,8 +252,7 @@
       { german:"strecken", slovak:"narovnať, natiahnuť" },
       { german:"Spreiz deine Beine!", slovak:"Roztiahni nohy!" },
       { german:"Grätsche die Beine!", slovak:"Roztiahni nohy doširoka!" },
-      { german:"Verwechsle vier Dinge nicht: Höflichkeit ist kein Flirten, Aufmerksamkeit ist keine Liebe, Schweigen ist kein Ärger, und Tränen sind keine Schwäche.", 
-        slovak:"Nezamieňaj si štyri veci: zdvorilosť nie je flirtovanie, pozornosť nie je láska, mlčanie nie je hnev a slzy nie sú slabosť." },
+      { german:"Verwechsle vier Dinge nicht: Höflichkeit ist kein Flirten, Aufmerksamkeit ist keine Liebe, Schweigen ist kein Ärger, und Tränen sind keine Schwäche.", slovak:"Nezamieňaj si štyri veci: zdvorilosť nie je flirtovanie, pozornosť nie je láska, mlčanie nie je hnev a slzy nie sú slabosť." },
       { german:"widerlich", slovak:"odporný, hnusný" },
       { german:"Abfindung", slovak:"odstupné" },
       { german:"Verkehrsunfall wegen eines Rasers", slovak:"dopravná nehoda kvôli rýchlej jazde (vinníkom je „rýchlikár“)" },
@@ -281,8 +282,8 @@
       { german:"Würstchen", slovak:"párky" },
       { german:"Bratwürstchen", slovak:"špekačky, malé klobásky" },
       { german:"Paketzusteller", slovak:"doručovateľ balíkov, kuriér" },
-      { german:"Bei einer jungen Frau geht der Schwanz kaputt, aber bei einer alten Frau kann man gut üben.", 
-        slovak:"Na mladej žene sa kokot ničí, na starej žene sa dobre cvičí" },
+
+      { german:"Bei einer jungen Frau geht der Schwanz kaputt, aber bei einer alten Frau kann man gut üben.", slovak:"Na mladej žene sa kokot ničí, na starej žene sa dobre cvičí" },
 
       { german:"Höschen", slovak:"nohavičky" },
       { german:"das Gleis", slovak:"koľaj, nástupište" },
@@ -308,11 +309,9 @@
       { german:"Vorfahrt gewähren", slovak:"dať prednosť v jazde" },
       { german:"dauerhafte Folgen", slovak:"trvalé následky" },
       { german:"Erwerbsunfähigkeitsrente", slovak:"invalidný dôchodok" },
-      { german:"Kann ich aufgrund dauerhafter Folgen einen Antrag auf Erwerbsunfähigkeitsrente stellen?", 
-        slovak:"Môžem požiadať o invalidný dôchodok kvôli trvalým následkom?" },
+      { german:"Kann ich aufgrund dauerhafter Folgen einen Antrag auf Erwerbsunfähigkeitsrente stellen?", slovak:"Môžem požiadať o invalidný dôchodok kvôli trvalým následkom?" },
       { german:"Zinsen", slovak:"úroky" },
-      { german:"Meine Finger und mein Handgelenk werden immer steifer und steifer", 
-        slovak:"Moje prsty a zápästie sú čoraz tuhšie" },
+      { german:"Meine Finger und mein Handgelenk werden immer steifer und steifer", slovak:"Moje prsty a zápästie sú čoraz tuhšie" },
       { german:"extrem ernste Bedrohung", slovak:"mimoriadne vážna hrozba" },
       { german:"gemobbt", slovak:"šikanovaný" },
       { german:"Gemütlichkeit", slovak:"útulnosť, pohoda" },
@@ -323,8 +322,7 @@
       { german:"Eine wundervolle und besinnliche Weihnachtszeit", slovak:"Krásne a pokojné Vianoce" },
       { german:"Verpiss dich!", slovak:"Zmizni, strať sa!" },
       { german:"Verpiss dich, du Wichser!", slovak:"Zmizni, ty kretén!" },
-      { german:"Im Bett bist du eine Null! Selbst der beste Jockey kann nichts machen, wenn die Stute lahmt!", 
-        slovak:"V posteli si nula! Ani najlepší džokej nič nezmôže, keď kobyla kríva!" },
+      { german:"Im Bett bist du eine Null! Selbst der beste Jockey kann nichts machen, wenn die Stute lahmt!", slovak:"V posteli si nula! Ani najlepší džokej nič nezmôže, keď kobyla kríva!" },
       { german:"Schnall dich an!", slovak:"Zapni si pás!" },
       { german:"Herausforderung", slovak:"výzva" },
       { german:"Ich musste mich entscheiden", slovak:"Musel som sa rozhodnúť" },
@@ -383,14 +381,10 @@
       { german:"Deutsche Lebens-Rettungs-Gesellschaft (DLRG)", slovak:"Nemecká spoločnosť pre záchranu života" },
       { german:"Rohrzucker", slovak:"trstinový cukor" },
       { german:"Fernweh", slovak:"túžba po cestovaní" },
-      { german:"Nachdem die Rechnung bezahlt worden war, wurde die Ware verschickt.", 
-        slovak:"Potom, čo bola faktúra zaplatená, bol tovar odoslaný." },
-      { german:"Ich weiß nicht, warum ich mich damit beschäftigen sollte.", 
-        slovak:"Neviem, prečo by som sa tým mal zaoberať." },
-      { german:"Könnten Sie mir bitte nähere Informationen mitteilen, damit ich Ihnen dabei helfen kann?", 
-        slovak:"Mohli by ste mi, prosím, poskytnúť bližšie informácie, aby som vám mohol pomôcť?" },
-      { german:"Dürfte ich Sie um nähere Informationen über diese Angelegenheit bitten?", 
-        slovak:"Smel by som vás požiadať o bližšie informácie o tejto záležitosti?" },
+      { german:"Nachdem die Rechnung bezahlt worden war, wurde die Ware verschickt.", slovak:"Potom, čo bola faktúra zaplatená, bol tovar odoslaný." },
+      { german:"Ich weiß nicht, warum ich mich damit beschäftigen sollte.", slovak:"Neviem, prečo by som sa tým mal zaoberať." },
+      { german:"Könnten Sie mir bitte nähere Informationen mitteilen, damit ich Ihnen dabei helfen kann?", slovak:"Mohli by ste mi, prosím, poskytnúť bližšie informácie, aby som vám mohol pomôcť?" },
+      { german:"Dürfte ich Sie um nähere Informationen über diese Angelegenheit bitten?", slovak:"Smel by som vás požiadať o bližšie informácie o tejto záležitosti?" },
       { german:"die Fußsohle", slovak:"chodidlo, ploska nohy" },
       { german:"die Zehen", slovak:"prsty na nohe" },
       { german:"Benachrichtigungen aktivieren", slovak:"zapnúť upozornenia" },
@@ -402,6 +396,7 @@
       { german:"Ich bin fix und fertig.", slovak:"Som úplne vyčerpaný" },
       { german:"Vorsichtig handhaben!", slovak:"Zachádzajte opatrne!" }
     ];
+
     // ===== Kapitola KPAK =====
     const kpakContent = [
       { german: "KPAK", slovak: "KPAK" },
@@ -447,6 +442,17 @@
     // načítanie progresu (uloženého v localStorage)
     loadProgress();
 
+    // po načítaní progresu orež indexy na platné rozsahy
+    function clampProgressToRanges() {
+      if (currentWordIndex < 0) currentWordIndex = 0;
+      if (currentWordIndex >= vocabularyList.length) currentWordIndex = vocabularyList.length - 1;
+      if (kpakIndex < 0) kpakIndex = 0;
+      if (kpakIndex >= kpakContent.length) kpakIndex = kpakContent.length - 1;
+      if (!Number.isFinite(currentWordIndex)) currentWordIndex = 0;
+      if (!Number.isFinite(kpakIndex)) kpakIndex = 0;
+    }
+    clampProgressToRanges();
+
     const speakText = async (text, langShort) => {
       const lang = (langShort === 'de') ? 'de-DE' : 'sk-SK';
       await TTS.speak(text, lang);
@@ -463,20 +469,21 @@
       render();
     };
 
-    const handleReveal = () => { showSlovak = true; render(); };
+    const handleReveal = () => { showSlovak = true; saveProgress(); render(); };
     const handleNext = () => {
       if (currentChapter === 'main') currentWordIndex++;
       else kpakIndex++;
       saveProgress();
       getNextWord();
     };
-    const switchToKpak = () => { currentChapter = 'kpak'; kpakIndex = 0; saveProgress(); getNextWord(); };
-    const switchToMain = () => { currentChapter = 'main'; currentWordIndex = 0; saveProgress(); getNextWord(); };
+    const switchToKpak = () => { currentChapter = 'kpak'; kpakIndex = Math.max(0, kpakIndex|0); saveProgress(); getNextWord(); };
+    const switchToMain = () => { currentChapter = 'main'; currentWordIndex = Math.max(0, currentWordIndex|0); saveProgress(); getNextWord(); };
 
     function render() {
+      clampProgressToRanges();
       let currentContent;
       if (currentChapter === 'main') {
-        if (currentWordIndex >= vocabularyList.length) {
+        if (currentWordIndex >= vocabularyList.length || currentWordIndex < 0) {
           appContent.innerHTML = `
             <div class="word-display">
               <p class="text-3xl font-extrabold text-white">Gratulujem!</p>
@@ -490,7 +497,7 @@
         }
         currentContent = vocabularyList[currentWordIndex];
       } else {
-        if (kpakIndex >= kpakContent.length) {
+        if (kpakIndex >= kpakContent.length || kpakIndex < 0) {
           appContent.innerHTML = `
             <div class="word-display">
               <p class="text-3xl font-extrabold text-white">Koniec kapitoly KPAK!</p>
@@ -532,8 +539,8 @@
       appContent.innerHTML = html;
 
       document.getElementById('playGerman').addEventListener('click', () => { speakText(currentContent.german, 'de'); });
-      document.getElementById('nextBtn').addEventListener('click', handleNext);
-      document.getElementById('revealBtn').addEventListener('click', handleReveal);
+      document.getElementById('nextBtn').addEventListener('click', () => { handleNext(); });
+      document.getElementById('revealBtn').addEventListener('click', () => { handleReveal(); });
 
       if (showSlovak) {
         document.getElementById('playSlovak').addEventListener('click', () => { speakText(currentContent.slovak, 'sk'); });
@@ -548,6 +555,7 @@
 
     // prvé vykreslenie
     getNextWord();
+
     // ===== AUTO režim (bez zmeny UI) =====
     const $ = (id)=>document.getElementById(id);
     const elStart = $("auto-start");
@@ -562,7 +570,7 @@
       running:false, paused:false,
       get list(){ return currentChapter === 'main' ? vocabularyList : kpakContent; },
       get i(){ return currentChapter === 'main' ? currentWordIndex : kpakIndex; },
-      set i(v){ if (currentChapter === 'main') currentWordIndex = v; else kpakIndex = v; }
+      set i(v){ if (currentChapter === 'main') currentWordIndex = v; else kpakIndex = v; saveProgress(); render(); }
     };
 
     function setBtns(){
@@ -581,7 +589,7 @@
       status(`🔊 DE: ${item.german}`);
       await TTS.speak(item.german, 'de-DE');
       if (!st.running) return false;
-      showSlovak = true; render();
+      showSlovak = true; saveProgress(); render();
       status(`🔊 SK: ${item.slovak}`);
       await TTS.speak(item.slovak, 'sk-SK');
       return true;
@@ -598,14 +606,14 @@
           if (currentChapter === 'main' && kpakContent.length) {
             currentChapter = 'kpak';
             st.i = 0;
-            showSlovak = false; render();
+            showSlovak = false; saveProgress(); render();
             continue;
           } else {
             stopAuto();
             break;
           }
         }
-        showSlovak = false; render();
+        showSlovak = false; saveProgress(); render();
       }
     }
 
@@ -616,6 +624,7 @@
       st.running = true; st.paused = false;
       status("Auto režim beží…");
       setBtns();
+      saveProgress();
       loop();
     }
     function stopAuto(){
@@ -623,28 +632,33 @@
       TTS.cancel();
       status("Zastavené.");
       setBtns();
+      saveProgress();
     }
     function pauseAuto(){
       st.paused = true;
       try { speechSynthesis.pause(); } catch{}
       status("Pauza.");
       setBtns();
+      saveProgress();
     }
     function resumeAuto(){
       st.paused = false;
       try { speechSynthesis.resume(); } catch{}
       status("Pokračujem…");
       setBtns();
+      saveProgress();
     }
     function prevOne(){
       if (!st.running) return;
       st.i = Math.max(0, st.i - 1);
       TTS.cancel();
+      saveProgress();
     }
     function nextOne(){
       if (!st.running) return;
       st.i = Math.min(st.list.length - 1, st.i + 1);
       TTS.cancel();
+      saveProgress();
     }
 
     elStart.addEventListener('click', startAuto);
@@ -653,6 +667,7 @@
     elResume.addEventListener('click', resumeAuto);
     elPrev .addEventListener('click', prevOne);
     elNext .addEventListener('click', nextOne);
+
     // ===== FORMULÁR: pridanie slova + ukladanie do localStorage =====
     const formBox = document.createElement('div');
     formBox.className = "panel";
@@ -669,10 +684,10 @@
       const slovak = document.getElementById('newSlovak').value.trim();
       if (!german || !slovak) return;
 
-      // uloženie do runtime zoznamu
+      // uloženie do runtime zoznamu (zachová dizajn/logiku)
       vocabularyList.push({ german, slovak });
 
-      // uloženie do localStorage (iba nové, neničí existujúce)
+      // uloženie do localStorage (iba novinky, neničí existujúce)
       const fresh = loadUserVocab();
       fresh.push({ german, slovak });
       saveUserVocab(fresh);
@@ -680,7 +695,9 @@
       alert("Slovo bolo pridané (uložené lokálne).");
       document.getElementById('newGerman').value = "";
       document.getElementById('newSlovak').value = "";
+      saveProgress();
     });
+
     // ===== Service worker (offline podpora) =====
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
