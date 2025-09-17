@@ -165,7 +165,6 @@
       return { speak, cancel(){ try{ speechSynthesis.cancel(); }catch{} } };
     })();
 
-
     // ===== OPRAVENÝ ZÁKLADNÝ ZOZNAM SLOVÍČOK =====
     const BASE_VOCAB = [
       { german:"Vermutung", slovak:"domnienka, tušenie" },
@@ -283,9 +282,7 @@
       { german:"Würstchen", slovak:"párky" },
       { german:"Bratwürstchen", slovak:"špekačky, malé klobásky" },
       { german:"Paketzusteller", slovak:"doručovateľ balíkov, kuriér" },
-
       { german:"Bei einer jungen Frau geht der Schwanz kaputt, aber bei einer alten Frau kann man gut üben.", slovak:"Na mladej žene sa kokot ničí, na starej žene sa dobre cvičí" },
-
       { german:"Höschen", slovak:"nohavičky" },
       { german:"das Gleis", slovak:"koľaj, nástupište" },
       { german:"die Schiene", slovak:"dlaha, ortéza; koľajnica" },
@@ -618,16 +615,16 @@
       }
     }
 
+    // >>> UPRAVENÁ FUNKCIA (bez resetu na začiatok) <<<
     function startAuto(){
-      currentChapter = 'main';
-      currentWordIndex = 0;
-      kpakIndex = 0;
-      st.running = true; st.paused = false;
+      st.running = true;
+      st.paused = false;
       status("Auto režim beží…");
       setBtns();
       saveProgress();
       loop();
     }
+
     function stopAuto(){
       st.running = false; st.paused = false;
       TTS.cancel();
@@ -708,4 +705,3 @@
   </script>
 </body>
 </html>
-
