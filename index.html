@@ -6,12 +6,12 @@
 
   <title>Precvičovanie nemčiny</title>
 
-  <!-- PWA META -->
+  <!-- PWA META (nezmenené cesty) -->
   <meta name="theme-color" content="#4f46e5" />
   <link rel="manifest" href="/nemecky-jazyk/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/nemecky-jazyk/icon.png">
 
-  <!-- Tailwind + fonty -->
+  <!-- Tailwind + fonty (nezmenené) -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet" />
 
@@ -19,43 +19,21 @@
     body {
       font-family: 'Inter', sans-serif;
       background-color: #f1f5f9;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-      padding: 1rem;
-      box-sizing: border-box;
-      user-select: auto;
+      display: flex; justify-content: center; align-items: center;
+      min-height: 100vh; margin: 0; padding: 1rem; box-sizing: border-box; user-select: auto;
     }
     .container {
-      background-color: #f87171;
-      border-radius: 1.5rem;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-      padding: 2rem;
-      max-width: 600px;
-      width: 100%;
-      text-align: center;
-      border: 4px solid #818cf8;
+      background-color: #f87171; border-radius: 1.5rem; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      padding: 2rem; max-width: 600px; width: 100%; text-align: center; border: 4px solid #818cf8;
     }
     .button {
-      padding: 0.75rem 2rem;
-      font-weight: bold;
-      border-radius: 9999px;
-      color: white;
-      transition: all 0.2s ease-in-out;
-      cursor: pointer;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      text-align: center;
+      padding: 0.75rem 2rem; font-weight: bold; border-radius: 9999px; color: white; transition: all 0.2s ease-in-out;
+      cursor: pointer; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); text-align: center;
     }
-    .button-indigo { background-color: #4f46e5; }
-    .button-indigo:hover { background-color: #4338ca; transform: translateY(-2px); box-shadow: 0 6px 10px rgba(0,0,0,0.15); }
-    .button-green { background-color: #22c55e; }
-    .button-green:hover { background-color: #16a34a; transform: translateY(-2px); box-shadow: 0 6px 10px rgba(0,0,0,0.15); }
-    .button-blue { background-color: #3b82f6; }
-    .button-blue:hover { background-color: #2563eb; transform: translateY(-2px); box-shadow: 0 6px 10px rgba(0,0,0,0.15); }
-    .button-red { background-color: #ef4444; }
-    .button-red:hover { background-color: #dc2626; transform: translateY(-2px); box-shadow: 0 6px 10px rgba(0,0,0,0.15); }
+    .button-indigo { background-color: #4f46e5; } .button-indigo:hover { background-color: #4338ca; transform: translateY(-2px); box-shadow: 0 6px 10px rgba(0,0,0,0.15); }
+    .button-green  { background-color: #22c55e; } .button-green:hover  { background-color: #16a34a; transform: translateY(-2px); box-shadow: 0 6px 10px rgba(0,0,0,0.15); }
+    .button-blue   { background-color: #3b82f6; } .button-blue:hover   { background-color: #2563eb; transform: translateY(-2px); box-shadow: 0 6px 10px rgba(0,0,0,0.15); }
+    .button-red    { background-color: #ef4444; } .button-red:hover    { background-color: #dc2626; transform: translateY(-2px); box-shadow: 0 6px 10px rgba(0,0,0,0.15); }
     .button:disabled { background-color: #94a3b8; cursor: not-allowed; transform: none; box-shadow: none; }
     .word-display { min-height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
     .slovak-display { min-height: 50px; margin-top: 1rem; display: flex; flex-direction: column; align-items: center; justify-content: center; }
@@ -78,7 +56,7 @@
   <div class="container">
     <h1 class="text-3xl font-bold text-slate-800 mb-6">Precvičovanie nemčiny</h1>
 
-    <!-- Panel automatického prehrávania (bez inputov) -->
+    <!-- Panel automatického prehrávania (nezmenený layout a ovládanie) -->
     <div class="panel">
       <div class="row">
         <button id="auto-start"  class="button button-green">▶️ Spustiť auto</button>
@@ -99,7 +77,7 @@
   </div>
 
   <script>
-    // --- TTS (vracia Promise; iPhone-friendly) ---
+    // --- TTS (bez cenzúry; číta všetko, aj vulgarizmy) ---
     const TTS = (() => {
       const synth = window.speechSynthesis;
 
@@ -173,8 +151,9 @@
     // --- Koniec TTS ---
 
     document.addEventListener('DOMContentLoaded', () => {
-      // ===== TVOJ PÔVODNÝ ZOZNAM – CELÝ (presne ako si poslal) =====
-      const vocabularyList = [
+      // ===== TVOJ PÔVODNÝ ZOZNAM (ponechaný) =====
+      // Dôležité: "let" (aby sa dal rozšíriť) a nahradená 1 položka kvôli TTS.
+      let vocabularyList = [
         { german: 'Vermutung', slovak: 'domienka, tušenie' },
         { german: 'Vermögen', slovak: 'majetok, schopnosť' },
         { german: 'äußerste', slovak: 'najkrajnejší, krajnosť' },
@@ -291,7 +270,7 @@
         { german: 'Speckwürstchen / Bratwürstchen', slovak: 'špekačky / klobása' },
         { german: 'Packetzusteller', slovak: 'doručovateľ balíkov, kuriér' },
         { german: 'Ich möchte weder Fleisch noch Fisch', slovak: 'Nechcem ani mäso, ani rybu' },
-        { german: 'Bei einer jungen Frau wird der Schwanz ruiniert …', slovak: '(no vulgárna nadávka)' },
+        { german: 'Bei einer jungen Frau wird der Schwanz ruiniert …', slovak: 'Na mladej žene sa kokot ničí …' }, <!-- úprava kvôli TTS -->
         { german: 'Höschen', slovak: 'nohavičky' },
         { german: 'das Gleis', slovak: 'koľaj, koľajisko' },
         { german: 'Schiene', slovak: 'dlaha, ortéza' },
@@ -335,6 +314,7 @@
         { german: 'Ich musste mich entscheiden', slovak: 'musel som sa rozhodnúť' }
       ];
 
+      // ===== Tvoja kapitola KPAK (nezmenená, manuálne tlačidlo) =====
       const kpakContent = [
         { german: 'KPAK', slovak: 'KPAK' },
         { german: 'Wann?', slovak: 'Kedy?' },
@@ -364,6 +344,92 @@
         { german: 'Das zählt zu meinen Lieblingsbüchern.', slovak: 'To patrí medzi moje obľúbené knihy.' },
       ];
 
+      // ===== Balík, ktorý má nasledovať hneď po „Ich musste mich entscheiden“ =====
+      const EXTRA_AFTER = [
+        // Ovocie
+        { german:"der Apfel", slovak:"jablko" },
+        { german:"die Birne", slovak:"hruška" },
+        { german:"die Pflaume", slovak:"slivka" },
+        { german:"die Kirsche", slovak:"čerešňa" },
+        { german:"die Sauerkirsche", slovak:"višňa" },
+        { german:"der Pfirsich", slovak:"broskyňa" },
+        { german:"die Nektarine", slovak:"nektarinka" },
+        { german:"die Aprikose", slovak:"marhuľa" },
+        { german:"die Traube", slovak:"hrozno" },
+        { german:"die Orange / die Apfelsine", slovak:"pomaranč" },
+        { german:"die Mandarine", slovak:"mandarínka" },
+        { german:"die Zitrone", slovak:"citrón" },
+        { german:"die Grapefruit", slovak:"grep (grapefruit)" },
+        { german:"die Ananas", slovak:"ananás" },
+        { german:"die Banane", slovak:"banán" },
+        { german:"die Kiwi", slovak:"kivi" },
+        { german:"die Mango", slovak:"mango" },
+        { german:"die Wassermelone", slovak:"melón (červený)" },
+        { german:"die Honigmelone", slovak:"melón (žltý)" },
+        { german:"die Erdbeere", slovak:"jahoda" },
+        { german:"die Himbeere", slovak:"malina" },
+        { german:"die Brombeere", slovak:"černica" },
+        { german:"die Johannisbeere", slovak:"ríbezľa" },
+        { german:"die Stachelbeere", slovak:"egreš" },
+        { german:"der Granatapfel", slovak:"granátové jablko" },
+        { german:"die Feige", slovak:"figy" },
+        { german:"die Dattel", slovak:"datle" },
+        { german:"die Limette", slovak:"limetka" },
+        { german:"die Passionsfrucht", slovak:"marakuja" },
+        { german:"die Kokosnuss", slovak:"kokosový orech" },
+        { german:"die Avocado", slovak:"avokádo" },
+
+        // Frázy (viera)
+        { german:"im Gebet", slovak:"v modlitbe" },
+        { german:"Deine Gnade", slovak:"Tvoja milosť" },
+        { german:"Barmherzigkeit", slovak:"zľutovanie / milosrdenstvo" },
+        { german:"für mich", slovak:"pre mňa" },
+        { german:"alle Menschen", slovak:"všetci ľudia" },
+        { german:"die ich liebe", slovak:"ktorých milujem" },
+        { german:"schenke", slovak:"daruj" },
+        { german:"Mut", slovak:"odvaha" },
+        { german:"Geduld", slovak:"trpezlivosť" },
+        { german:"um… zu meistern", slovak:"aby som zvládol/zvládla" },
+        { german:"Herausforderungen des Lebens", slovak:"výzvy života" },
+        { german:"meine Prioritäten zu setzen", slovak:"určiť si priority" },
+        { german:"mich zu konzentrieren", slovak:"sústrediť sa" },
+        { german:"auf das, was wirklich wichtig ist", slovak:"na to, čo je naozaj dôležité" },
+        { german:"Ich vertraue darauf", slovak:"Dôverujem tomu" },
+        { german:"dass Du immer bei mir bist", slovak:"že si vždy pri mne" },
+        { german:"Ich verspreche", slovak:"Sľubujem" },
+
+        // Jedlo / technika / telo / formálne vety / idiómy
+        { german:"Rührei", slovak:"praženica (miešané vajíčka)" },
+        { german:"Großes Bier", slovak:"veľké pivo" },
+        { german:"Spiegelei", slovak:"volské oko" },
+        { german:"Retouren / Retoure", slovak:"vrátený tovar / vratky" },
+        { german:"Deutsche Lebens-Rettungs-Gesellschaft (DLRG)", slovak:"Nemecká spoločnosť pre záchranu života (DLRG)" },
+        { german:"Rohrzucker", slovak:"trstinový cukor" },
+        { german:"Fernweh", slovak:"túžba po cestovaní" },
+        { german:"Nachdem die Rechnung bezahlt worden war, wurde die Ware verschickt.", slovak:"Potom, čo bola faktúra zaplatená, bol tovar odoslaný." },
+        { german:"Ich weiß nicht, warum ich mich damit beschäftigen sollte.", slovak:"Neviem, prečo by som sa tým mal zaoberať." },
+        { german:"Könnten Sie mir bitte nähere Informationen mitteilen, damit ich Ihnen dabei helfen kann?", slovak:"Mohli by ste mi, prosím, poskytnúť bližšie informácie, aby som vám s tým mohol pomôcť?" },
+        { german:"Dürfte ich Sie um nähere Informationen über diese Angelegenheit / über diese Sache bitten?", slovak:"Smel by som vás požiadať o bližšie informácie o tejto záležitosti / o tejto veci?" },
+        { german:"die Fußsohle", slovak:"chodidlo / ploska nohy" },
+        { german:"die Zehen", slovak:"prsty na nohe" },
+        { german:"Benachrichtigungen aktivieren", slovak:"zapnúť upozornenia" },
+        { german:"entsprechend", slovak:"zodpovedajúci" },
+        { german:"Ich werde zurückkehren", slovak:"Vrátim sa" },
+        { german:"Ich bin pappsatt.", slovak:"Som úplne sýty / prejedený (plný až po krk)." },
+        { german:"Ich bin satt.", slovak:"Som sýty." },
+        { german:"Du hast meine Gedanken ausgesprochen.", slovak:"Vyslovil si moje myšlienky / povedal si presne to, čo som si myslel(a)." },
+        { german:"Ich bin fix und fertig.", slovak:"Som úplne vyčerpaný/á; totálne hotový/á." },
+      ];
+
+      // ——— vlož EXTRA_AFTER hneď za „Ich musste mich entscheiden“ ———
+      (function appendAfterTerm(){
+        const TERM = 'Ich musste mich entscheiden';
+        const idx = vocabularyList.findIndex(o => (o.german||'').trim() === TERM);
+        const insertAt = idx >= 0 ? idx + 1 : vocabularyList.length;
+        vocabularyList.splice(insertAt, 0, ...EXTRA_AFTER);
+      })();
+
+      // ===== UI/LOGIKA (nezmenené) =====
       const appContent = document.getElementById('app-content');
       let currentWordIndex = 0;
       let showSlovak = false;
@@ -472,7 +538,7 @@
 
       getNextWord();
 
-      // ===== AUTO-REŽIM (DE -> ukáž preklad -> SK -> ďalšie; bez oneskorení navyše) =====
+      // ===== AUTO-REŽIM (BEZ automatického prepínania na KPAK) =====
       const $ = (id)=>document.getElementById(id);
       const elStart = $("auto-start");
       const elPause = $("auto-pause");
@@ -522,27 +588,18 @@
           if (!ok || !st.running) break;
           st.i++;
           if (st.i >= st.list.length) {
-            if (currentChapter === 'main' && kpakContent.length) {
-              // po hlavnom zozname plynule pokračuj KPAK
-              currentChapter = 'kpak';
-              st.i = 0;
-              showSlovak = false; render();
-              continue;
-            } else {
-              stopAuto();
-              break;
-            }
+            // nič – autoplay skončí po poslednej položke hlavného zoznamu
+            stopAuto();
+            break;
           }
           showSlovak = false; render();
         }
       }
 
       function startAuto(){
-        // Začni vždy od 1. položky hlavného zoznamu a prejdime až po KPAK
         currentChapter = 'main';
         currentWordIndex = 0;
         kpakIndex = 0;
-
         st.running = true; st.paused = false;
         status("Auto režim beží…");
         setBtns();
@@ -586,7 +643,7 @@
       // ===== KONIEC AUTO-REŽIMU =====
     });
 
-    // PWA: registrácia SW – nechávame ako máš
+    // PWA: registrácia SW – cesty nezmenené
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/nemecky-jazyk/sw.js').catch(console.error);
