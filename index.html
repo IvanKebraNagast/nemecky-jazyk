@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="sk">
 <head>
   <meta charset="UTF-8" />
@@ -96,6 +96,20 @@
   </div>
 
   <script>
+    // ===== Ukladanie do localStorage (bez zmeny dizajnu/logiky) =====
+    const LS_KEY = 'nemeckyVocabV1';
+
+    function loadUserVocab() {
+      try {
+        const raw = localStorage.getItem(LS_KEY);
+        const arr = raw ? JSON.parse(raw) : [];
+        return Array.isArray(arr) ? arr.filter(x => x && x.german && x.slovak) : [];
+      } catch { return []; }
+    }
+    function saveUserVocab(list) {
+      try { localStorage.setItem(LS_KEY, JSON.stringify(list)); } catch {}
+    }
+
     // ===== TTS engine =====
     const TTS = (() => {
       const synth = window.speechSynthesis;
@@ -127,24 +141,24 @@
       return { speak, cancel(){ try{ speechSynthesis.cancel(); }catch{} } };
     })();
 
-    // ===== VEĽKÝ ZOZNAM SLOVÍČOK (časť 1) =====
-    const vocabularyList = [
+    // ===== OPRAVENÝ ZÁKLADNÝ ZOZNAM SLOVÍČOK =====
+    const BASE_VOCAB = [
       { german:"Vermutung", slovak:"domnienka, tušenie" },
       { german:"Vermögen", slovak:"majetok, schopnosť" },
-      { german:"äußerste", slovak:"najkrajnejší; krajnosť" },
+      { german:"das Äußerste", slovak:"najkrajnejšie; krajnosť" },
       { german:"die Ankündigung", slovak:"oznámenie, ohlásenie" },
       { german:"Fahrgestell", slovak:"podvozok" },
-      { german:"zu schätzen", slovak:"oceniť" },
-      { german:"loszulassen", slovak:"nechať ísť" },
-      { german:"zusammenkommen", slovak:"dať sa dokopy" },
+      { german:"schätzen", slovak:"oceniť" },
+      { german:"loslassen", slovak:"nechať ísť, pustiť" },
+      { german:"zusammenkommen", slovak:"dať sa dokopy, stretnúť sa" },
       { german:"auseinander", slovak:"od seba" },
-      { german:"ein bisschen auseinander stehen", slovak:"stáť trochu od seba" },
-      { german:"sich auseinander entwickeln", slovak:"odlišne sa vyvíjať" },
-      { german:"begegnen", slovak:"stretnúť" },
-      { german:"begegnet", slovak:"stretol" },
+      { german:"ein bisschen auseinanderstehen", slovak:"stáť trochu od seba" },
+      { german:"sich auseinanderentwickeln", slovak:"odlišne sa vyvíjať" },
+      { german:"begegnen", slovak:"stretnúť (sa s niekým)" },
+      { german:"begegnet", slovak:"stretol (sa)" },
       { german:"der Zweifel", slovak:"pochybnosť" },
       { german:"der Leichnam", slovak:"mŕtvola" },
-      { german:"mitmachen", slovak:"zúčastniť sa" },
+      { german:"mitmachen", slovak:"zúčastniť sa, pridať sa" },
       { german:"Ja, ich mache mit", slovak:"Áno, pridám sa" },
       { german:"Ja, ich werde mitmachen", slovak:"Áno, pridám sa (budúci čas)" },
       { german:"Ja, ich schließe mich an", slovak:"Áno, pridávam sa" },
@@ -217,7 +231,7 @@
       { german:"bevorzugen", slovak:"uprednostňovať" },
       { german:"widerlich", slovak:"odporný, hnusný" },
       { german:"Abfindung", slovak:"odstupné" },
-      { german:"Verkehrsunfall wegen Raser", slovak:"dopravná nehoda kvôli rýchlej jazde" },
+      { german:"Verkehrsunfall wegen eines Rasers", slovak:"dopravná nehoda kvôli rýchlej jazde (vinníkom je „rýchlikár“)" },
       { german:"Regierungschef", slovak:"vedúci predstaviteľ vlády" },
       { german:"Premierminister", slovak:"predseda vlády" },
       { german:"Krampfadern (Varizen)", slovak:"kŕčové žily" },
@@ -230,7 +244,7 @@
       { german:"Kommt mir bekannt vor", slovak:"zdá sa mi to známe" },
       { german:"Das Handgelenk lockert sich langsam", slovak:"Zápästie sa pomaly uvoľňuje" },
       { german:"Gerichtsvollzieher", slovak:"súdny exekútor" },
-      { german:"Ich gehe aus", slovak:"idem vontiaľ, vyrážam" },
+      { german:"Ich gehe aus", slovak:"Idem von / Idem preč" },
       { german:"rund um die Uhr", slovak:"nonstop" },
       { german:"Voraussichtliche Zustellung", slovak:"odhadované doručenie" },
       { german:"krankheitsbedingt", slovak:"z dôvodu choroby" },
@@ -240,7 +254,7 @@
       { german:"je", slovak:"čím" },
       { german:"desto", slovak:"tým" },
       { german:"Wurst", slovak:"klobása, údenina" },
-      { german:"Blutwurst / Grützwurst", slovak:"jaternica, krvavničky" },
+      { german:"Blutwurst / Grützwurst", slovak:"jaternica / krvavnica" },
       { german:"Würstchen", slovak:"párky" },
       { german:"Bratwürstchen", slovak:"špekačky, malé klobásky" },
       { german:"Paketzusteller", slovak:"doručovateľ balíkov, kuriér" },
@@ -358,6 +372,7 @@
       { german:"Ich bin fix und fertig.", slovak:"Som úplne vyčerpaný" },
       { german:"Vorsichtig handhaben!", slovak:"Zachádzajte opatrne!" }
     ];
+
     // ===== Kapitola KPAK =====
     const kpakContent = [
       { german: "KPAK", slovak: "KPAK" },
@@ -368,27 +383,33 @@
       { german: "Ich gehe", slovak: "Idem / Pôjdem" },
       { german: "➡️ morgen", slovak: "➡️ zajtra" },
       { german: "➡️ wegen meiner Arbeit", slovak: "➡️ kvôli mojej práci" },
-      { german: "➡️ mit dem Fahrrad", slovak: "➡️ na bicykli" },
+            { german: "➡️ mit dem Fahrrad", slovak: "➡️ na bicykli" },
       { german: "➡️ in die Stadt", slovak: "➡️ do mesta" },
-      { german: "holen", slovak: "priniesť, zájsť po niečo / niekoho" },
+      { german: "holen", slovak: "priniesť, zájsť po (niečo/niekoho)" },
       { german: "Ich hole mir ein Glas Wasser.", slovak: "Idem si po pohár vody." },
       { german: "Kannst du die Zeitung holen?", slovak: "Môžeš priniesť noviny?" },
-      { german: "abholen", slovak: "vyzdvihnúť (niekoho / niečo)" },
+      { german: "abholen", slovak: "vyzdvihnúť (niekoho/niečo)" },
       { german: "Ich hole dich vom Bahnhof ab.", slovak: "Prídem ťa vyzdvihnúť na stanicu." },
       { german: "Er holt das Paket ab.", slovak: "Vyzdvihuje balík." },
       { german: "sich erholen", slovak: "odpočinúť si, zotaviť sa" },
       { german: "Ich erhole mich am Wochenende.", slovak: "Oddýchnem si cez víkend." },
       { german: "Sie hat sich nach der Krankheit gut erholt.", slovak: "Dobre sa zotavila po chorobe." },
-      { german: "durchnässt", slovak:"premočený" },
-      { german: "zählen auf + Akkusativ", slovak:"spoliehať sa na niekoho" },
-      { german: "Ich zähle auf dich.", slovak:"Spolieham sa na teba." },
-      { german: "Du kannst auf mich zählen.", slovak:"Môžeš sa na mňa spoľahnúť." },
-      { german: "zählen zu + Dativ", slovak:"patriť k niečomu" },
-      { german: "Er zählt zu den Besten.", slovak:"Patrí medzi najlepších." },
-      { german: "Das zählt zu meinen Lieblingsbüchern.", slovak:"To patrí medzi moje obľúbené knihy." }
+      { german: "durchnässt", slovak: "premočený" },
+      { german: "zählen auf + Akkusativ", slovak: "spoliehať sa na niekoho" },
+      { german: "Ich zähle auf dich.", slovak: "Spolieham sa na teba." },
+      { german: "Du kannst auf mich zählen.", slovak: "Môžeš sa na mňa spoľahnúť." },
+      { german: "zählen zu + Dativ", slovak: "patriť k niečomu" },
+      { german: "Er zählt zu den Besten.", slovak: "Patrí medzi najlepších." },
+      { german: "Das zählt zu meinen Lieblingsbüchern.", slovak: "To patrí medzi moje obľúbené knihy." }
     ];
-    // ===== APLIKÁCIA =====
+
+    // ===== APLIKÁCIA (stav a render) =====
     const appContent = document.getElementById('app-content');
+
+    // Zlúč základ + užívateľské z localStorage (bez zmeny poradia základných)
+    const userVocab = loadUserVocab();
+    const vocabularyList = [...BASE_VOCAB, ...userVocab];
+
     let currentWordIndex = 0;
     let showSlovak = false;
     let currentChapter = 'main';
@@ -418,7 +439,7 @@
     const switchToKpak = () => { currentChapter = 'kpak'; kpakIndex = 0; getNextWord(); };
     const switchToMain = () => { currentChapter = 'main'; currentWordIndex = 0; getNextWord(); };
 
-    const render = () => {
+    function render() {
       let currentContent;
       if (currentChapter === 'main') {
         if (currentWordIndex >= vocabularyList.length) {
@@ -458,9 +479,9 @@
 
       if (showSlovak) {
         html += `<div class="slovak-display">
-            <p class="text-white text-xl font-semibold break-words max-w-full" style="user-select: text;">${currentContent.slovak}</p>
-            <button id="playSlovak" class="speak-button button-green">Prehrať v slovenčine</button>
-          </div>`;
+          <p class="text-white text-xl font-semibold break-words max-w-full" style="user-select: text;">${currentContent.slovak}</p>
+          <button id="playSlovak" class="speak-button button-green">Prehrať v slovenčine</button>
+        </div>`;
       }
 
       html += `<div class="flex flex-col space-y-3 mt-8">`;
@@ -472,8 +493,8 @@
       } else {
         html += `<button id="back-to-main-btn" class="button button-green mt-4">Návrat k hlavnému zoznamu</button>`;
       }
-
       html += `</div>`;
+
       appContent.innerHTML = html;
 
       document.getElementById('playGerman').addEventListener('click', () => { speakText(currentContent.german, 'de'); });
@@ -485,15 +506,16 @@
       }
 
       if (currentChapter === 'main') {
-        document.getElementById('switch-to-kpak-btn').addEventListener('click', () => { currentChapter = 'kpak'; kpakIndex = 0; getNextWord(); });
+        document.getElementById('switch-to-kpak-btn').addEventListener('click', switchToKpak);
       } else {
-        document.getElementById('back-to-main-btn').addEventListener('click', () => { currentChapter = 'main'; currentWordIndex = 0; getNextWord(); });
+        document.getElementById('back-to-main-btn').addEventListener('click', switchToMain);
       }
-    };
+    }
 
+    // prvé vykreslenie
     getNextWord();
 
-    // ===== AUTO režim =====
+    // ===== AUTO režim (bez zmeny UI) =====
     const $ = (id)=>document.getElementById(id);
     const elStart = $("auto-start");
     const elPause = $("auto-pause");
@@ -599,7 +621,7 @@
     elPrev .addEventListener('click', prevOne);
     elNext .addEventListener('click', nextOne);
 
-    // ===== FORMULÁR na pridanie nových slov =====
+    // ===== FORMULÁR: pridanie slova + ukladanie do localStorage =====
     const formBox = document.createElement('div');
     formBox.className = "panel";
     formBox.innerHTML = `
@@ -613,15 +635,22 @@
     document.getElementById('addWordBtn').addEventListener('click', () => {
       const german = document.getElementById('newGerman').value.trim();
       const slovak = document.getElementById('newSlovak').value.trim();
-      if (german && slovak) {
-        vocabularyList.push({ german, slovak });
-        alert("Slovo bolo pridané!");
-        document.getElementById('newGerman').value = "";
-        document.getElementById('newSlovak').value = "";
-      }
+      if (!german || !slovak) return;
+
+      // uloženie do runtime zoznamu (zachová dizajn/logiku)
+      vocabularyList.push({ german, slovak });
+
+      // uloženie do localStorage (iba novinky, neničí existujúce)
+      const fresh = loadUserVocab();
+      fresh.push({ german, slovak });
+      saveUserVocab(fresh);
+
+      alert("Slovo bolo pridané (uložené lokálne).");
+      document.getElementById('newGerman').value = "";
+      document.getElementById('newSlovak').value = "";
     });
 
-    // ===== Service worker =====
+    // ===== Service worker (offline podpora) =====
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/nemecky-jazyk/sw.js').catch(console.error);
@@ -630,3 +659,4 @@
   </script>
 </body>
 </html>
+
