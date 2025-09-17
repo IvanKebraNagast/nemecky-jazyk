@@ -127,12 +127,12 @@
       return { speak, cancel(){ try{ speechSynthesis.cancel(); }catch{} } };
     })();
 
-    // ===== Zoznam slovíčok (komplet opravený) =====
+    // ===== VEĽKÝ ZOZNAM SLOVÍČOK (časť 1) =====
     const vocabularyList = [
       { german:"Vermutung", slovak:"domnienka, tušenie" },
       { german:"Vermögen", slovak:"majetok, schopnosť" },
-      { german:"äußerste", slovak:"najkrajnejší; najvyšší stupeň; krajnosť" },
-      { german:"die Ankündigung", slovak:"oznámenie, ohlásenie, oznam" },
+      { german:"äußerste", slovak:"najkrajnejší; krajnosť" },
+      { german:"die Ankündigung", slovak:"oznámenie, ohlásenie" },
       { german:"Fahrgestell", slovak:"podvozok" },
       { german:"zu schätzen", slovak:"oceniť" },
       { german:"loszulassen", slovak:"nechať ísť" },
@@ -150,7 +150,6 @@
       { german:"Ja, ich schließe mich an", slovak:"Áno, pridávam sa" },
       { german:"Rinderfilet", slovak:"hovädzia sviečkovica" },
       { german:"Auftragsverfolgung", slovak:"sledovanie objednávky" },
-      { german:"die Sendungsverfolgung", slovak:"sledovanie zásielky" },
       { german:"der Scherz", slovak:"žart" },
       { german:"die Zuversicht", slovak:"nádej, dôvera, viera" },
       { german:"abschließen", slovak:"zamknúť; uzavrieť" },
@@ -244,10 +243,10 @@
       { german:"Blutwurst / Grützwurst", slovak:"jaternica, krvavničky" },
       { german:"Würstchen", slovak:"párky" },
       { german:"Bratwürstchen", slovak:"špekačky, malé klobásky" },
+      { german:"Paketzusteller", slovak:"doručovateľ balíkov, kuriér" },
+
       { german:"Bei einer jungen Frau geht der Schwanz kaputt, aber bei einer alten Frau kann man gut üben.", slovak:"Na mladej žene sa penis ničí, na starej žene sa dobre cvičí" },
 
-      { german:"Paketzusteller", slovak:"doručovateľ balíkov, kuriér" },
-      { german:"Ich möchte weder Fleisch noch Fisch", slovak:"Nechcem ani mäso, ani rybu" },
       { german:"Höschen", slovak:"nohavičky" },
       { german:"das Gleis", slovak:"koľaj, nástupište" },
       { german:"die Schiene", slovak:"dlaha, ortéza; koľajnica" },
@@ -359,7 +358,6 @@
       { german:"Ich bin fix und fertig.", slovak:"Som úplne vyčerpaný" },
       { german:"Vorsichtig handhaben!", slovak:"Zachádzajte opatrne!" }
     ];
-
     // ===== Kapitola KPAK =====
     const kpakContent = [
       { german: "KPAK", slovak: "KPAK" },
@@ -389,6 +387,246 @@
       { german: "Er zählt zu den Besten.", slovak:"Patrí medzi najlepších." },
       { german: "Das zählt zu meinen Lieblingsbüchern.", slovak:"To patrí medzi moje obľúbené knihy." }
     ];
+    // ===== APLIKÁCIA =====
+    const appContent = document.getElementById('app-content');
+    let currentWordIndex = 0;
+    let showSlovak = false;
+    let currentChapter = 'main';
+    let kpakIndex = 0;
+
+    const speakText = async (text, langShort) => {
+      const lang = (langShort === 'de') ? 'de-DE' : 'sk-SK';
+      await TTS.speak(text, lang);
+    };
+
+    const getNextWord = () => {
+      showSlovak = false;
+      if (currentChapter === 'main') {
+        if (currentWordIndex >= vocabularyList.length) currentWordIndex = 0;
+      } else {
+        if (kpakIndex >= kpakContent.length) kpakIndex = 0;
+      }
+      render();
+    };
+
+    const handleReveal = () => { showSlovak = true; render(); };
+    const handleNext = () => {
+      if (currentChapter === 'main') currentWordIndex++;
+      else kpakIndex++;
+      getNextWord();
+    };
+    const switchToKpak = () => { currentChapter = 'kpak'; kpakIndex = 0; getNextWord(); };
+    const switchToMain = () => { currentChapter = 'main'; currentWordIndex = 0; getNextWord(); };
+
+    const render = () => {
+      let currentContent;
+      if (currentChapter === 'main') {
+        if (currentWordIndex >= vocabularyList.length) {
+          appContent.innerHTML = `
+            <div class="word-display">
+              <p class="text-3xl font-extrabold text-white">Gratulujem!</p>
+              <p class="text-xl font-semibold text-white mt-4">Prešli ste všetky slová.</p>
+              <button id="restartBtn" class="button button-indigo mt-8">Začať odznova</button>
+              <button id="switch-to-kpak-btn" class="button button-green mt-4">Prejsť na kapitolu KPAK</button>
+            </div>`;
+          document.getElementById('restartBtn').addEventListener('click', () => { currentWordIndex = 0; getNextWord(); });
+          document.getElementById('switch-to-kpak-btn').addEventListener('click', switchToKpak);
+          return;
+        }
+        currentContent = vocabularyList[currentWordIndex];
+      } else {
+        if (kpakIndex >= kpakContent.length) {
+          appContent.innerHTML = `
+            <div class="word-display">
+              <p class="text-3xl font-extrabold text-white">Koniec kapitoly KPAK!</p>
+              <p class="text-xl font-semibold text-white mt-4">Prešli ste všetky slová z tejto sekcie.</p>
+              <button id="back-to-main-btn" class="button button-indigo mt-8">Návrat k hlavnému zoznamu</button>
+              <button id="restartKpakBtn" class="button button-green mt-4">Začať odznova kapitolu KPAK</button>
+            </div>`;
+          document.getElementById('back-to-main-btn').addEventListener('click', switchToMain);
+          document.getElementById('restartKpakBtn').addEventListener('click', () => { kpakIndex = 0; getNextWord(); });
+          return;
+        }
+        currentContent = kpakContent[kpakIndex];
+      }
+
+      let html = '';
+      html += `<div class="word-display">`;
+      html += `<p class="text-white text-4xl font-extrabold break-words max-w-full" style="user-select: text;">${currentContent.german}</p>`;
+      html += `<button id="playGerman" class="speak-button button-blue">Prehrať v nemčine</button>`;
+      html += `</div>`;
+
+      if (showSlovak) {
+        html += `<div class="slovak-display">
+            <p class="text-white text-xl font-semibold break-words max-w-full" style="user-select: text;">${currentContent.slovak}</p>
+            <button id="playSlovak" class="speak-button button-green">Prehrať v slovenčine</button>
+          </div>`;
+      }
+
+      html += `<div class="flex flex-col space-y-3 mt-8">`;
+      html += `<button id="revealBtn" class="button button-indigo">Zobraziť preklad</button>`;
+      html += `<button id="nextBtn" class="button button-red">Ďalšie slovo</button>`;
+
+      if (currentChapter === 'main') {
+        html += `<button id="switch-to-kpak-btn" class="button button-green mt-4">Prejsť na kapitolu KPAK</button>`;
+      } else {
+        html += `<button id="back-to-main-btn" class="button button-green mt-4">Návrat k hlavnému zoznamu</button>`;
+      }
+
+      html += `</div>`;
+      appContent.innerHTML = html;
+
+      document.getElementById('playGerman').addEventListener('click', () => { speakText(currentContent.german, 'de'); });
+      document.getElementById('nextBtn').addEventListener('click', handleNext);
+      document.getElementById('revealBtn').addEventListener('click', handleReveal);
+
+      if (showSlovak) {
+        document.getElementById('playSlovak').addEventListener('click', () => { speakText(currentContent.slovak, 'sk'); });
+      }
+
+      if (currentChapter === 'main') {
+        document.getElementById('switch-to-kpak-btn').addEventListener('click', () => { currentChapter = 'kpak'; kpakIndex = 0; getNextWord(); });
+      } else {
+        document.getElementById('back-to-main-btn').addEventListener('click', () => { currentChapter = 'main'; currentWordIndex = 0; getNextWord(); });
+      }
+    };
+
+    getNextWord();
+
+    // ===== AUTO režim =====
+    const $ = (id)=>document.getElementById(id);
+    const elStart = $("auto-start");
+    const elPause = $("auto-pause");
+    const elResume= $("auto-resume");
+    const elStop  = $("auto-stop");
+    const elPrev  = $("auto-prev");
+    const elNext  = $("auto-next");
+    const elStatus= $("auto-status");
+
+    const st = {
+      running:false, paused:false,
+      get list(){ return currentChapter === 'main' ? vocabularyList : kpakContent; },
+      get i(){ return currentChapter === 'main' ? currentWordIndex : kpakIndex; },
+      set i(v){ if (currentChapter === 'main') currentWordIndex = v; else kpakIndex = v; }
+    };
+
+    function setBtns(){
+      elStart.disabled  = st.running;
+      elPause.disabled  = !st.running || st.paused;
+      elResume.disabled = !st.running || !st.paused;
+      elStop.disabled   = !st.running;
+      elPrev.disabled   = !st.running;
+      elNext.disabled   = !st.running;
+    }
+    function status(t){ elStatus.textContent = t; }
+
+    async function playItem(i){
+      const item = st.list[i];
+      if (!item) return false;
+      status(`🔊 DE: ${item.german}`);
+      await TTS.speak(item.german, 'de-DE');
+      if (!st.running) return false;
+      showSlovak = true; render();
+      status(`🔊 SK: ${item.slovak}`);
+      await TTS.speak(item.slovak, 'sk-SK');
+      return true;
+    }
+
+    async function loop(){
+      setBtns();
+      while (st.running){
+        if (st.paused) { await new Promise(r=>setTimeout(r,120)); continue; }
+        const ok = await playItem(st.i);
+        if (!ok || !st.running) break;
+        st.i++;
+        if (st.i >= st.list.length) {
+          if (currentChapter === 'main' && kpakContent.length) {
+            currentChapter = 'kpak';
+            st.i = 0;
+            showSlovak = false; render();
+            continue;
+          } else {
+            stopAuto();
+            break;
+          }
+        }
+        showSlovak = false; render();
+      }
+    }
+
+    function startAuto(){
+      currentChapter = 'main';
+      currentWordIndex = 0;
+      kpakIndex = 0;
+      st.running = true; st.paused = false;
+      status("Auto režim beží…");
+      setBtns();
+      loop();
+    }
+    function stopAuto(){
+      st.running = false; st.paused = false;
+      TTS.cancel();
+      status("Zastavené.");
+      setBtns();
+    }
+    function pauseAuto(){
+      st.paused = true;
+      try { speechSynthesis.pause(); } catch{}
+      status("Pauza.");
+      setBtns();
+    }
+    function resumeAuto(){
+      st.paused = false;
+      try { speechSynthesis.resume(); } catch{}
+      status("Pokračujem…");
+      setBtns();
+    }
+    function prevOne(){
+      if (!st.running) return;
+      st.i = Math.max(0, st.i - 1);
+      TTS.cancel();
+    }
+    function nextOne(){
+      if (!st.running) return;
+      st.i = Math.min(st.list.length - 1, st.i + 1);
+      TTS.cancel();
+    }
+
+    elStart.addEventListener('click', startAuto);
+    elStop .addEventListener('click', stopAuto);
+    elPause.addEventListener('click', pauseAuto);
+    elResume.addEventListener('click', resumeAuto);
+    elPrev .addEventListener('click', prevOne);
+    elNext .addEventListener('click', nextOne);
+
+    // ===== FORMULÁR na pridanie nových slov =====
+    const formBox = document.createElement('div');
+    formBox.className = "panel";
+    formBox.innerHTML = `
+      <h2 class="text-xl font-bold mb-4">Pridaj nové slovíčko</h2>
+      <input id="newGerman" type="text" placeholder="Nemecké slovo" class="border p-2 rounded w-full mb-2">
+      <input id="newSlovak" type="text" placeholder="Slovenský preklad" class="border p-2 rounded w-full mb-2">
+      <button id="addWordBtn" class="button button-green w-full">Pridať slovo</button>
+    `;
+    document.querySelector(".container").appendChild(formBox);
+
+    document.getElementById('addWordBtn').addEventListener('click', () => {
+      const german = document.getElementById('newGerman').value.trim();
+      const slovak = document.getElementById('newSlovak').value.trim();
+      if (german && slovak) {
+        vocabularyList.push({ german, slovak });
+        alert("Slovo bolo pridané!");
+        document.getElementById('newGerman').value = "";
+        document.getElementById('newSlovak').value = "";
+      }
+    });
+
+    // ===== Service worker =====
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/nemecky-jazyk/sw.js').catch(console.error);
+      });
+    }
   </script>
 </body>
 </html>
