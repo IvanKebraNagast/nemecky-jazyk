@@ -79,6 +79,8 @@
     <div class="panel">
       <div class="row">
         <button id="auto-start"  class="button button-green">▶️ Spustiť auto</button>
+        <button id="auto-start-begin" class="button button-green">⏮️ Auto od začiatku</button>
+
         <button id="auto-pause"  class="button button-indigo" disabled>⏸️ Pauza</button>
         <button id="auto-resume" class="button button-indigo" disabled>▶️ Pokračovať</button>
         <button id="auto-stop"   class="button button-red"    disabled>⏹️ Stop</button>
@@ -403,10 +405,10 @@
       { german: "Wie?", slovak: "Ako?" },
       { german: "Wo?", slovak: "Kde?" },
       { german: "Ich gehe", slovak: "Idem / Pôjdem" },
-      { german: "➡️ morgen", slovak: "➡️ zajtra" },
-      { german: "➡️ wegen meiner Arbeit", slovak: "➡️ kvôli mojej práci" },
-      { german: "➡️ mit dem Fahrrad", slovak: "➡️ na bicykli" },
-      { german: "➡️ in die Stadt", slovak: "➡️ do mesta" },
+      { german: " morgen", slovak: " zajtra" },
+      { german: " wegen meiner Arbeit", slovak: " kvôli mojej práci" },
+      { german: " mit dem Fahrrad", slovak: " na bicykli" },
+      { german: " in die Stadt", slovak: " do mesta" },
       { german: "holen", slovak: "priniesť, zájsť po (niečo/niekoho)" },
       { german: "Ich hole mir ein Glas Wasser.", slovak: "Idem si po pohár vody." },
       { german: "Kannst du die Zeitung holen?", slovak: "Môžeš priniesť noviny?" },
@@ -451,10 +453,12 @@
     }
     clampProgressToRanges();
 
-    const speakText = async (text, langShort) => {
-      const lang = (langShort === 'de') ? 'de-DE' : 'sk-SK';
-      await TTS.speak(text, lang);
-    };
+   const speakText = async (text, langShort) => {
+  const lang = (langShort === 'de') ? 'de-DE' : 'sk-SK';
+  // pri čítaní nahradí lomky "/" za čiarku
+  const clean = text.replace(/\s*\/\s*/g, ", ");
+  await TTS.speak(clean, lang);
+};
 
     const getNextWord = () => {
       showSlovak = false;
@@ -563,6 +567,7 @@
     const elPrev  = $("auto-prev");
     const elNext  = $("auto-next");
     const elStatus= $("auto-status");
+    const elStartBegin = $("auto-start-begin");
 
     const st = {
       running:false, paused:false,
@@ -593,27 +598,47 @@
       return true;
     }
 
-    async function loop(){
-      setBtns();
-      while (st.running){
-        if (st.paused) { await new Promise(r=>setTimeout(r,120)); continue; }
-        const ok = await playItem(st.i);
-        if (!ok || !st.running) break;
-        st.i++;
-        if (st.i >= st.list.length) {
-          if (currentChapter === 'main' && kpakContent.length) {
-            currentChapter = 'kpak';
-            st.i = 0;
-            showSlovak = false; saveProgress(); render();
-            continue;
-          } else {
-            stopAuto();
-            break;
-          }
-        }
-        showSlovak = false; saveProgress(); render();
+  async function loop(myId){
+  setBtns();
+  while (st.running && myId === autoRunId){
+    if (st.paused) { 
+      await new Promise(r => setTimeout(r,120)); 
+      continue; 
+    }
+
+    // ak už sme na konci → rovno stopni, neprehraj znova
+    if (st.i >= st.list.length) {
+      if (currentChapter === 'main' && kpakContent.length) {
+        // prepneme na KPAK a ideme od začiatku KPAK
+        currentChapter = 'kpak';
+        st.i = 0;
+        showSlovak = false;
+        saveProgress();
+        render();
+        continue;
+      } else {
+        stopAuto();
+        break;
       }
     }
+
+    // prehráme aktuálnu položku
+    const ok = await playItem(st.i);
+    if (!ok || !st.running || myId !== autoRunId) break;
+
+    st.i++;
+
+    // iba ak nie sme na konci, pripravíme ďalšie
+    if (st.i < st.list.length){
+      showSlovak = false; 
+      saveProgress(); 
+      render();
+      await new Promise(r => setTimeout(r,500));
+    }
+  }
+}
+
+
 
     // >>> UPRAVENÁ FUNKCIA (bez resetu na začiatok) <<<
     function startAuto(){
@@ -659,12 +684,78 @@
       saveProgress();
     }
 
-    elStart.addEventListener('click', startAuto);
-    elStop .addEventListener('click', stopAuto);
-    elPause.addEventListener('click', pauseAuto);
-    elResume.addEventListener('click', resumeAuto);
-    elPrev .addEventListener('click', prevOne);
-    elNext .addEventListener('click', nextOne);
+  elStart.addEventListener('click', startAuto);
+elStop .addEventListener('click', stopAuto);
+elPause.addEventListener('click', pauseAuto);
+elResume.addEventListener('click', resumeAuto);
+elPrev .addEventListener('click', prevOne);
+elNext .addEventListener('click', nextOne);
+
+let autoRunId = 0; // >>> unikátne ID pre každé spustenie <<<
+
+// upravený loop s kontrolou ID
+async function loop(myId){
+  setBtns();
+  while (st.running && myId === autoRunId){
+    if (st.paused) { 
+      await new Promise(r => setTimeout(r,120)); 
+      continue; 
+    }
+
+    const ok = await playItem(st.i);
+    if (!ok || !st.running || myId !== autoRunId) break;
+
+    // --- ak sme prehrali posledný prvok, hneď skončíme ---
+    if (st.i >= st.list.length - 1) {
+      stopAuto();
+      break;
+    }
+
+    st.i++;
+
+    // iba ak nie sme na konci, pokračujeme ďalej
+    showSlovak = false; 
+    saveProgress(); 
+    render();
+    await new Promise(r => setTimeout(r,500));
+  }
+}
+
+
+function startAuto(){
+  autoRunId++;             // nové ID
+  st.running = true;
+  st.paused = false;
+  status("Auto režim beží…");
+  setBtns();
+  saveProgress();
+  loop(autoRunId);         // spusti loop s týmto ID
+}
+
+function stopAuto(){
+  st.running = false; 
+  st.paused = false;
+  autoRunId++;             // zneplatní všetky staré loop-y
+  TTS.cancel();
+  status("Zastavené.");
+  setBtns();
+  saveProgress();
+}
+
+// >>> Auto od začiatku <<<
+function startAutoFromBeginning(){
+  stopAuto();
+  currentChapter = 'main';
+  currentWordIndex = 0;
+  kpakIndex = 0;
+  showSlovak = false;
+  saveProgress();
+
+  startAuto();  // spustí úplne nový loop s novým ID
+}
+
+elStartBegin.addEventListener('click', startAutoFromBeginning);
+
 
     // ===== FORMULÁR: pridanie slova + ukladanie do localStorage =====
     const formBox = document.createElement('div');
@@ -695,6 +786,48 @@
       document.getElementById('newSlovak').value = "";
       saveProgress();
     });
+    // ===== Zoznam pridaných slovíčok s možnosťou vymazania =====
+const userWordsBox = document.createElement('div');
+userWordsBox.className = "panel";
+userWordsBox.innerHTML = `
+  <h2 class="text-xl font-bold mb-4">Moje pridané slovíčka</h2>
+  <div id="userWordsList" class="space-y-2"></div>
+`;
+document.querySelector(".container").appendChild(userWordsBox);
+
+function renderUserWords(){
+  const list = loadUserVocab();
+  const box = document.getElementById('userWordsList');
+  if (!list.length) {
+    box.innerHTML = `<p class="text-gray-600">Žiadne pridané slovíčka.</p>`;
+    return;
+  }
+  box.innerHTML = list.map((w, i) => `
+    <div class="flex justify-between items-center bg-slate-100 p-2 rounded">
+      <span><b>${w.german}</b> – ${w.slovak}</span>
+      <button data-index="${i}" class="button button-red px-3 py-1">❌</button>
+    </div>
+  `).join("");
+
+  // tlačidlá na mazanie
+  box.querySelectorAll("button[data-index]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const idx = parseInt(btn.dataset.index);
+      const list = loadUserVocab();
+      list.splice(idx, 1); // vymaž konkrétny prvok
+      saveUserVocab(list);
+      renderUserWords(); // prekresli
+    });
+  });
+}
+
+// po pridaní slova obnovíme zoznam
+document.getElementById('addWordBtn').addEventListener('click', () => {
+  renderUserWords();
+});
+
+// načítaj zoznam hneď pri štarte
+renderUserWords();
 
     // ===== Service worker (offline podpora) =====
     if ('serviceWorker' in navigator) {
@@ -705,3 +838,4 @@
   </script>
 </body>
 </html>
+
